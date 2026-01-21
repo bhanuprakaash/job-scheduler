@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package scheduler;
+
+option go_package = "github.com/bhanuprakaash/job-scheduler/proto";
+
+service JobScheduler {
+  rpc SubmitJob(SubmitJobRequest) returns (SubmitJobResponse);
+  rpc GetJob(GetJobRequest) returns (GetJobResponse);
+}
+
+message SubmitJobRequest {
+  string type    = 1;
+  string payload = 2;
+}
+
+message SubmitJobResponse {
+  string job_id = 1;
+  string status = 2;
+}
+
+message GetJobRequest {
+  string job_id = 1;
+}
+
+message GetJobResponse {
+  string job_id       = 1;
+  string type         = 2;
+  string payload      = 3;
+  string status       = 4;
+  string created_at   = 5;
+  string completed_at = 6;
+}
