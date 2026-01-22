@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -48,7 +49,7 @@ func (s *Store) CreateJob(ctx context.Context, jobType, payload string) (*Job, e
 		`
 		INSERT INTO jobs (type, payload)
 		VALUES ($1, $2)
-		RETURNING id, type, payload, created_at, updated_at
+		RETURNING id, type, payload, status, created_at, updated_at
 		`
 
 	err := s.db.QueryRow(ctx, query, jobType, payload).
@@ -81,6 +82,9 @@ func (s *Store) GetJobByID(ctx context.Context, id int64) (*Job, error) {
 			&job.CompletedAt,
 		)
 	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, fmt.Errorf("no jobs found with the id: %d", id)
+		}
 		return nil, fmt.Errorf("get job: %w", err)
 	}
 
