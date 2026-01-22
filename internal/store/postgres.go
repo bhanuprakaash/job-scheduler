@@ -3,9 +3,9 @@ package store
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
+	"github.com/bhanuprakaash/job-scheduler/internal/logger"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -40,7 +40,7 @@ func NewStore(ctx context.Context, databaseUrl string) (*Store, error) {
 
 func (s *Store) Close() {
 	s.db.Close()
-	log.Println("[SUCCESS] db disconnected")
+	logger.Info("db disconnected")
 }
 
 func (s *Store) CreateJob(ctx context.Context, jobType, payload string) (*Job, error) {

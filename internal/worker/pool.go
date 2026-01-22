@@ -2,10 +2,10 @@ package worker
 
 import (
 	"context"
-	"log"
 	"sync"
 	"time"
 
+	"github.com/bhanuprakaash/job-scheduler/internal/logger"
 	"github.com/bhanuprakaash/job-scheduler/internal/store"
 )
 
@@ -29,7 +29,7 @@ func NewPool(s *store.Store, numWorkers int, pollInterval time.Duration) *Pool {
 }
 
 func (p *Pool) Start(ctx context.Context) {
-	log.Printf("[INFO] worker pool started with %d workers", p.numWorkers)
+	logger.Info("worker pool started", "workers", p.numWorkers)
 	for i := 0; i < p.numWorkers; i++ {
 		p.wg.Add(1)
 		go p.worker(ctx, i+1)
@@ -39,29 +39,29 @@ func (p *Pool) Start(ctx context.Context) {
 }
 
 func (p *Pool) Stop() {
-	log.Println("[INFO] worker pool shutting down....")
+	logger.Info("worker pool shutting down")
 	close(p.stopCh)
 	p.wg.Wait()
-	log.Println("[INFO] worker pool stopped")
+	logger.Info("worker pool stopped")
 
 }
 
 func (p *Pool) worker(ctx context.Context, id int) {
 	defer p.wg.Done()
 
-	log.Printf("[INFO] Worker-%d started: ", id)
+	logger.Info("Worker started: ", "worker", id)
 
 	for job := range p.jobCh {
-		log.Printf("[INFO] Worker-%d picked up job %d", id, job.ID)
+		logger.Info("Worker picked up job", "id", id, "job_id", job.ID)
 		p.ProcessNextJob(ctx, id, job)
 	}
 
-	log.Printf("[INFO] Worker-%d stopping", id)
+	logger.Info("Worker stopping", "id", id)
 
 }
 
 func (p *Pool) StartDispatcher(ctx context.Context) {
-	log.Println("[INFO] starting dispatcher...")
+	logger.Info("starting dispatcher")
 	defer close(p.jobCh)
 
 	ticker := time.NewTicker(p.pollInterval)
@@ -70,19 +70,19 @@ func (p *Pool) StartDispatcher(ctx context.Context) {
 	for {
 		select {
 		case <-p.stopCh:
-			log.Printf("[INFO] Dispatcher shutting down")
+			logger.Info("Dispatcher shutting down")
 			return
 
 		case <-ticker.C:
-			log.Println("[DEBUG] Ticker fired. Checking DB...")
+			logger.Debug("Ticker fired. Checking DB...")
 			jobs, err := p.store.GetPendingJobs(ctx, 10)
 			if err != nil {
-				log.Printf("[ERROR] fetching jobs: %v", err)
+				logger.Error("fetching jobs", "err", err)
 				continue
 			}
 
 			if len(jobs) > 0 {
-				log.Printf("[DISPATCHER] found %d jobs", len(jobs))
+				logger.Info("Dispatcher found jobs", "jobs", len(jobs))
 			}
 
 			for _, job := range jobs {
@@ -101,16 +101,16 @@ func (p *Pool) StartDispatcher(ctx context.Context) {
 func (p *Pool) ProcessNextJob(ctx context.Context, workerId int, job store.Job) {
 	err := p.store.UpdateJobStatus(ctx, store.JobStatusRunning, job.ID)
 	if err != nil {
-		log.Printf("[ERROR] Worker-%d failed to mark job %d running: %v", workerId, job.ID, err)
+		logger.Error("Worker failed to mark job", "worker_id", workerId, "job_id", job.ID, "error", err)
 		return
 	}
 
-	log.Printf("[WORKER] Worker-%d processing payload: %s", workerId, job.Payload)
+	logger.Info("Worker processing with payload", "worker", workerId, "job_payload", job.Payload)
 	time.Sleep(2 * time.Second)
 
 	err = p.store.UpdateJobStatus(ctx, store.JobStatusCompleted, job.ID)
 	if err != nil {
-		log.Printf("[ERROR] Worker-%d failed to mark job %d completed: %v", workerId, job.ID, err)
+		logger.Error("Worker failed to mark job complete", "worker_id", workerId, "job_id", job.ID, "error", err)
 		return
 	}
 }

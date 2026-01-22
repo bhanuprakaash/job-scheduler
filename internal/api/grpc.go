@@ -3,9 +3,9 @@ package api
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 
+	"github.com/bhanuprakaash/job-scheduler/internal/logger"
 	"github.com/bhanuprakaash/job-scheduler/internal/store"
 	pb "github.com/bhanuprakaash/job-scheduler/proto"
 )
@@ -22,7 +22,7 @@ func NewServer(store *store.Store) *Server {
 }
 
 func (s *Server) SubmitJob(ctx context.Context, req *pb.SubmitJobRequest) (*pb.SubmitJobResponse, error) {
-	log.Printf("[INFO] Received job submission: type=%s, payload=%s", req.Type, req.Payload)
+	logger.Info("Received job submission", "type", req.Type, "payload", req.Payload)
 
 	if req.Type == "" {
 		return nil, fmt.Errorf("job type is required")
@@ -33,11 +33,11 @@ func (s *Server) SubmitJob(ctx context.Context, req *pb.SubmitJobRequest) (*pb.S
 
 	job, err := s.store.CreateJob(ctx, req.Type, req.Payload)
 	if err != nil {
-		log.Printf("Failed to create job: %v", err)
+		logger.Error("Failed to create job", "error", err)
 		return nil, err
 	}
 
-	log.Printf("[SUCCESS] job created successfully: %d", job.ID)
+	logger.Info("job created successfully", "job_id", job.ID)
 
 	return &pb.SubmitJobResponse{
 		JobId:  strconv.Itoa(int(job.ID)),
@@ -54,7 +54,7 @@ func (s *Server) GetJob(ctx context.Context, req *pb.GetJobRequest) (*pb.GetJobR
 
 	job, err := s.store.GetJobByID(ctx, id)
 	if err != nil {
-		log.Printf("Failed to get job: %v", err)
+		logger.Error("Failed to get job", "error", err)
 		return nil, err
 	}
 
