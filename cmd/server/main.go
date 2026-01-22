@@ -27,15 +27,15 @@ func main() {
 	logger.Init()
 	ctx := context.Background()
 
-	config, err := config.Load()
+	cfg, err := config.Load()
 	if err != nil {
-		logger.Error("Failed to load the config", "error", err)
+		logger.Fatal("Failed to load the config", "error", err)
 	}
 
 	// db connection
-	db, err := store.NewStore(ctx, config.PG_DB_URL)
+	db, err := store.NewStore(ctx, cfg.PG_DB_URL)
 	if err != nil {
-		logger.Error("Failed to ping the store", "error", err)
+		logger.Fatal("Failed to ping the store", "error", err)
 	}
 	defer db.Close()
 	logger.Info("Connected to Database")
@@ -46,18 +46,18 @@ func main() {
 	defer workerPool.Stop()
 
 	// grpc connection
-	listen, err := net.Listen("tcp", fmt.Sprintf(":%s", config.GRPC_PORT))
+	listen, err := net.Listen("tcp", fmt.Sprintf(":%s", cfg.GRPC_PORT))
 	if err != nil {
-		logger.Error("Failed to listen", "error", err)
+		logger.Fatal("Failed to listen", "error", err)
 	}
 	grpcServer := grpc.NewServer()
 	pb.RegisterJobSchedulerServer(grpcServer, api.NewServer(db))
 
-	logger.Info("gRPC server listening", "port", config.GRPC_PORT)
+	logger.Info("gRPC server listening", "port", cfg.GRPC_PORT)
 
 	go func() {
 		if err := grpcServer.Serve(listen); err != nil {
-			logger.Error("Failed to serve", "error", err)
+			logger.Fatal("Failed to serve", "error", err)
 		}
 	}()
 

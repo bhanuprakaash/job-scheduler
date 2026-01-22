@@ -21,7 +21,7 @@ func Load() (*Config, error) {
 	}
 
 	grpcPort := os.Getenv("GRPC_PORT")
-	if dbUrl == "" {
+	if grpcPort == "" {
 		return nil, fmt.Errorf("GRPC_PORT is required")
 	}
 

@@ -74,7 +74,6 @@ func (p *Pool) StartDispatcher(ctx context.Context) {
 			return
 
 		case <-ticker.C:
-			logger.Debug("Ticker fired. Checking DB...")
 			jobs, err := p.store.GetPendingJobs(ctx, 10)
 			if err != nil {
 				logger.Error("fetching jobs", "err", err)

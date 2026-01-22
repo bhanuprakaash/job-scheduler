@@ -27,3 +27,8 @@ func Error(msg string, args ...any) {
 func Debug(msg string, args ...any) {
 	Log.Debug(msg, args...)
 }
+
+func Fatal(msg string, args ...any) {
+	Log.Error(msg, args...)
+	os.Exit(1)
+}
