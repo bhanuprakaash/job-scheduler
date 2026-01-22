@@ -92,6 +92,13 @@ func (s *Store) GetJobByID(ctx context.Context, id int64) (*Job, error) {
 }
 
 func (s *Store) GetPendingJobs(ctx context.Context, limit int) ([]Job, error) {
+
+	tx, err := s.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("begin transaction: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
 	query :=
 		`
 		SELECT id, type, payload, status, created_at, updated_at, started_at, completed_at
@@ -99,8 +106,9 @@ func (s *Store) GetPendingJobs(ctx context.Context, limit int) ([]Job, error) {
 		WHERE status = $1
 		ORDER BY created_at ASC
 		LIMIT $2
+		FOR UPDATE SKIP LOCKED
 		`
-	rows, err := s.db.Query(ctx, query, JobStatusPending, limit)
+	rows, err := tx.Query(ctx, query, JobStatusPending, limit)
 	if err != nil {
 		return nil, fmt.Errorf("get pending jobs: %w", err)
 	}
@@ -117,6 +125,23 @@ func (s *Store) GetPendingJobs(ctx context.Context, limit int) ([]Job, error) {
 			return nil, fmt.Errorf("scan job: %w", err)
 		}
 		jobs = append(jobs, job)
+	}
+
+	now := time.Now()
+	for i := range jobs {
+		_, err := tx.Exec(ctx,
+			`UPDATE jobs SET status = $1, started_at = NOW() WHERE id = $2`,
+			JobStatusRunning, jobs[i].ID,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("mark job running: %w", err)
+		}
+		jobs[i].Status = JobStatusRunning
+		jobs[i].StartedAt = &now
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("commit transaction: %w", err)
 	}
 
 	return jobs, nil

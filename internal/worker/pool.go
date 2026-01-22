@@ -98,18 +98,15 @@ func (p *Pool) StartDispatcher(ctx context.Context) {
 }
 
 func (p *Pool) ProcessNextJob(ctx context.Context, workerId int, job store.Job) {
-	err := p.store.UpdateJobStatus(ctx, store.JobStatusRunning, job.ID)
-	if err != nil {
-		logger.Error("Worker failed to mark job", "worker_id", workerId, "job_id", job.ID, "error", err)
-		return
-	}
-
 	logger.Info("Worker processing with payload", "worker", workerId, "job_payload", job.Payload)
 	time.Sleep(2 * time.Second)
 
-	err = p.store.UpdateJobStatus(ctx, store.JobStatusCompleted, job.ID)
+	err := p.store.UpdateJobStatus(ctx, store.JobStatusCompleted, job.ID)
 	if err != nil {
 		logger.Error("Worker failed to mark job complete", "worker_id", workerId, "job_id", job.ID, "error", err)
 		return
 	}
+
+	logger.Info("Worker completed the job with payload", "worker", workerId, "job_payload", job.Payload)
+
 }
