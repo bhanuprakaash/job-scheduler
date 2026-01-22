@@ -8,12 +8,19 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/bhanuprakaash/job-scheduler/internal/api"
 	"github.com/bhanuprakaash/job-scheduler/internal/config"
 	"github.com/bhanuprakaash/job-scheduler/internal/store"
+	"github.com/bhanuprakaash/job-scheduler/internal/worker"
 	pb "github.com/bhanuprakaash/job-scheduler/proto"
 	"google.golang.org/grpc"
+)
+
+const (
+	numWorkers   = 3
+	pollInterval = 2 * time.Second
 )
 
 func main() {
@@ -31,6 +38,11 @@ func main() {
 	}
 	defer db.Close()
 	log.Println("[SUCCESS] Connected to Database")
+
+	// worker pool
+	workerPool := worker.NewPool(db, numWorkers, pollInterval)
+	workerPool.Start(ctx)
+	defer workerPool.Stop()
 
 	// grpc connection
 	listen, err := net.Listen("tcp", fmt.Sprintf(":%s", config.GRPC_PORT))
