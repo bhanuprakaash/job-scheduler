@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/bhanuprakaash/job-scheduler/internal/api"
+	"github.com/bhanuprakaash/job-scheduler/internal/catalog/notifications"
 	"github.com/bhanuprakaash/job-scheduler/internal/config"
 	"github.com/bhanuprakaash/job-scheduler/internal/logger"
 	"github.com/bhanuprakaash/job-scheduler/internal/store"
@@ -40,8 +41,12 @@ func main() {
 	defer db.Close()
 	logger.Info("Connected to Database")
 
+	// job registry
+	jobRegistry := worker.NewRegistry()
+	jobRegistry.Register("dummy", &notifications.DummyJob{})
+
 	// worker pool
-	workerPool := worker.NewPool(db, numWorkers, pollInterval)
+	workerPool := worker.NewPool(db, jobRegistry, numWorkers, pollInterval)
 	workerPool.Start(ctx)
 	defer workerPool.Stop()
 

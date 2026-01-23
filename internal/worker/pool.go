@@ -11,6 +11,7 @@ import (
 
 type Pool struct {
 	store        *store.Store
+	registry     *Registry
 	numWorkers   int
 	pollInterval time.Duration
 	stopCh       chan struct{}
@@ -18,10 +19,11 @@ type Pool struct {
 	wg           sync.WaitGroup
 }
 
-func NewPool(s *store.Store, numWorkers int, pollInterval time.Duration) *Pool {
+func NewPool(s *store.Store, registry *Registry, numWorkers int, pollInterval time.Duration) *Pool {
 	return &Pool{
 		store:        s,
 		numWorkers:   numWorkers,
+		registry:     registry,
 		pollInterval: pollInterval,
 		stopCh:       make(chan struct{}),
 		jobCh:        make(chan store.Job, 10),
@@ -99,13 +101,22 @@ func (p *Pool) StartDispatcher(ctx context.Context) {
 
 func (p *Pool) ProcessNextJob(ctx context.Context, workerId int, job store.Job) {
 	logger.Info("Worker processing with payload", "worker", workerId, "job_payload", job.Payload)
-	time.Sleep(2 * time.Second)
 
-	err := p.store.UpdateJobStatus(ctx, store.JobStatusCompleted, job.ID)
+	handler, err := p.registry.Get(job.Type)
 	if err != nil {
 		logger.Error("Worker failed to mark job complete", "worker_id", workerId, "job_id", job.ID, "error", err)
+		p.store.UpdateJobStatus(ctx, store.JobStatusFailed, job.ID)
 		return
 	}
+
+	err = handler.Handle(ctx, job)
+	if err != nil {
+		logger.Error("Worker failed to mark job complete", "worker_id", workerId, "job_id", job.ID, "error", err)
+		p.store.UpdateJobStatus(ctx, store.JobStatusFailed, job.ID)
+		return
+	}
+
+	p.store.UpdateJobStatus(ctx, store.JobStatusCompleted, job.ID)
 
 	logger.Info("Worker completed the job with payload", "worker", workerId, "job_payload", job.Payload)
 
