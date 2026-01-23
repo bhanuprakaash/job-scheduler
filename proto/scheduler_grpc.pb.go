@@ -26,8 +26,21 @@ const (
 // JobSchedulerClient is the client API for JobScheduler service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// JobScheduler is the core service for managing background tasks.
+//
+// It allows clients to submit asynchronous jobs (like emails, billing, resizing)
+// and poll for their status. This service is designed to be horizontally scalable
+// and backed by a persistent store.
 type JobSchedulerClient interface {
+	// SubmitJob enqueues a new job for execution.
+	// It returns the generated Job ID and Status immediately while the job runs in the background.
 	SubmitJob(ctx context.Context, in *SubmitJobRequest, opts ...grpc.CallOption) (*SubmitJobResponse, error)
+	// GetJob retrieves the current status and details of a specific job.
+	// Use this to poll for completion or to retrieve the output of a finished job.
+	// Errors:
+	//   - NOT_FOUND: Returned if the provided job_id does not exist in the store.
+	//   - INVALID_ARGUMENT: Returned if the job_id is malformed.
 	GetJob(ctx context.Context, in *GetJobRequest, opts ...grpc.CallOption) (*GetJobResponse, error)
 }
 
@@ -62,8 +75,21 @@ func (c *jobSchedulerClient) GetJob(ctx context.Context, in *GetJobRequest, opts
 // JobSchedulerServer is the server API for JobScheduler service.
 // All implementations must embed UnimplementedJobSchedulerServer
 // for forward compatibility.
+//
+// JobScheduler is the core service for managing background tasks.
+//
+// It allows clients to submit asynchronous jobs (like emails, billing, resizing)
+// and poll for their status. This service is designed to be horizontally scalable
+// and backed by a persistent store.
 type JobSchedulerServer interface {
+	// SubmitJob enqueues a new job for execution.
+	// It returns the generated Job ID and Status immediately while the job runs in the background.
 	SubmitJob(context.Context, *SubmitJobRequest) (*SubmitJobResponse, error)
+	// GetJob retrieves the current status and details of a specific job.
+	// Use this to poll for completion or to retrieve the output of a finished job.
+	// Errors:
+	//   - NOT_FOUND: Returned if the provided job_id does not exist in the store.
+	//   - INVALID_ARGUMENT: Returned if the job_id is malformed.
 	GetJob(context.Context, *GetJobRequest) (*GetJobResponse, error)
 	mustEmbedUnimplementedJobSchedulerServer()
 }
