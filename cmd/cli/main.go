@@ -103,6 +103,9 @@ func getCmd() *cobra.Command {
 			if resp.CompletedAt != "" {
 				fmt.Printf("  Completed:  %s\n", resp.CompletedAt)
 			}
+			if resp.Status == "failed" {
+				fmt.Printf("  Error Message:  %s\n",resp.ErrorMessage)
+			}
 
 		},
 	}

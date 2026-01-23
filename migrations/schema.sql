@@ -15,3 +15,13 @@ CREATE TABLE jobs (
 CREATE INDEX idx_jobs_status_created ON jobs(status, created_at)
 WHERE
     status = 'pending';
+
+ALTER TABLE jobs
+ADD COLUMN retry_count INT NOT NULL DEFAULT 0,
+ADD COLUMN max_retries INT NOT NULL DEFAULT 3,
+ADD COLUMN last_err TEXT,
+ADD COLUMN next_run_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW();
+
+DROP INDEX idx_jobs_status_created_at;
+
+CREATE INDEX idx_jobs_status_next_run_at ON jobs (status, next_run_at);

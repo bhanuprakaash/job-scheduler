@@ -100,24 +100,34 @@ func (p *Pool) StartDispatcher(ctx context.Context) {
 }
 
 func (p *Pool) ProcessNextJob(ctx context.Context, workerId int, job store.Job) {
-	logger.Info("Worker processing with payload", "worker", workerId, "job_payload", job.Payload)
+	logger.Info("Worker processing the", "worker", workerId, "job_id", job.ID)
 
 	handler, err := p.registry.Get(job.Type)
 	if err != nil {
-		logger.Error("Worker failed to mark job complete", "worker_id", workerId, "job_id", job.ID, "error", err)
-		p.store.UpdateJobStatus(ctx, store.JobStatusFailed, job.ID)
+		logger.Error("no handler found", "error", err)
+		updateFail := p.store.UpdateJobStatus(ctx, store.JobStatusFailed, job.ID)
+		if updateFail != nil {
+			logger.Error("CRITICAL: Failed to update job status", "error", updateFail)
+		}
 		return
 	}
 
 	err = handler.Handle(ctx, job)
 	if err != nil {
-		logger.Error("Worker failed to mark job complete", "worker_id", workerId, "job_id", job.ID, "error", err)
-		p.store.UpdateJobStatus(ctx, store.JobStatusFailed, job.ID)
+		logger.Error("Job failed ", "worker_id", workerId, "job_id", job.ID, "error", err)
+		failErr := p.store.HandleJobFailure(ctx, job.ID, err.Error())
+		if failErr != nil {
+			logger.Error("CRITICAL: Failed to update job status", "error", failErr)
+		}
 		return
 	}
 
-	p.store.UpdateJobStatus(ctx, store.JobStatusCompleted, job.ID)
+	updateFail := p.store.UpdateJobStatus(ctx, store.JobStatusCompleted, job.ID)
+	if updateFail != nil {
+		logger.Error("CRITICAL: Failed to update job status", "error", updateFail)
+		return
+	}
 
-	logger.Info("Worker completed the job with payload", "worker", workerId, "job_payload", job.Payload)
+	logger.Info("Worker completed the job", "worker", workerId, "job_id", job.ID)
 
 }

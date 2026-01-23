@@ -66,7 +66,7 @@ func (s *Store) GetJobByID(ctx context.Context, id int64) (*Job, error) {
 
 	query :=
 		`
-		SELECT id, type, payload, status, created_at, updated_at, started_at, completed_at
+		SELECT id, type, payload, status, created_at, updated_at, started_at, completed_at, last_err
 		FROM jobs
 		WHERE id = $1
 		`
@@ -80,6 +80,7 @@ func (s *Store) GetJobByID(ctx context.Context, id int64) (*Job, error) {
 			&job.UpdatedAt,
 			&job.StartedAt,
 			&job.CompletedAt,
+			&job.ErrorMessage,
 		)
 	if err != nil {
 		if err == pgx.ErrNoRows {
@@ -103,8 +104,8 @@ func (s *Store) GetPendingJobs(ctx context.Context, limit int) ([]Job, error) {
 		`
 		SELECT id, type, payload, status, created_at, updated_at, started_at, completed_at
 		FROM jobs
-		WHERE status = $1
-		ORDER BY created_at ASC
+		WHERE status = $1 AND next_run_at <= NOW()
+		ORDER BY next_run_at ASC
 		LIMIT $2
 		FOR UPDATE SKIP LOCKED
 		`
@@ -162,4 +163,37 @@ func (s *Store) UpdateJobStatus(ctx context.Context, status JobStatus, id int64)
 	}
 
 	return nil
+}
+
+func (s *Store) HandleJobFailure(ctx context.Context, jobId int64, errMsg string) error {
+
+	query :=
+		`
+			UPDATE jobs
+			SET
+				retry_count = retry_count + 1,
+				last_err = $2,
+				status = CASE 
+					WHEN retry_count + 1 >= max_retries THEN 'failed'
+					ELSE 'pending'
+				END,
+
+				next_run_at = CASE 
+					WHEN retry_count + 1 >= max_retries THEN next_run_at
+					ELSE NOW() + (POWER(2, retry_count + 1) * INTERVAL '1 second')
+				END,
+
+				completed_at = CASE
+					WHEN retry_count + 1 >= max_retries THEN NOW()
+					ELSE NULL
+				END
+			WHERE id = $1 AND status = 'running'
+		`
+
+	_, err := s.db.Exec(ctx, query, jobId, errMsg)
+	if err != nil {
+		return fmt.Errorf("handle job failure: %w", err)
+	}
+	return nil
+
 }

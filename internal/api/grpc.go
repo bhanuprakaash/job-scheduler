@@ -64,6 +64,7 @@ func (s *Server) GetJob(ctx context.Context, req *pb.GetJobRequest) (*pb.GetJobR
 		Payload:   job.Payload,
 		Status:    string(job.Status),
 		CreatedAt: job.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		ErrorMessage: job.ErrorMessage,
 	}
 
 	if job.CompletedAt != nil {
