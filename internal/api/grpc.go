@@ -40,7 +40,7 @@ func (s *Server) SubmitJob(ctx context.Context, req *pb.SubmitJobRequest) (*pb.S
 	logger.Info("job created successfully", "job_id", job.ID)
 
 	return &pb.SubmitJobResponse{
-		JobId:  strconv.Itoa(int(job.ID)),
+		JobId:  strconv.FormatInt(job.ID, 10),
 		Status: string(job.Status),
 	}, nil
 }
@@ -59,7 +59,7 @@ func (s *Server) GetJob(ctx context.Context, req *pb.GetJobRequest) (*pb.GetJobR
 	}
 
 	resp := &pb.GetJobResponse{
-		JobId:     strconv.Itoa(int(job.ID)),
+		JobId:     strconv.FormatInt(job.ID, 10),
 		Type:      job.Type,
 		Payload:   job.Payload,
 		Status:    string(job.Status),

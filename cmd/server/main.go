@@ -19,10 +19,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-const (
-	numWorkers   = 3
-	pollInterval = 2 * time.Second
-)
 
 func main() {
 	logger.Init()
@@ -46,7 +42,7 @@ func main() {
 	jobRegistry.Register("dummy", &notifications.DummyJob{})
 
 	// worker pool
-	workerPool := worker.NewPool(db, jobRegistry, numWorkers, pollInterval)
+	workerPool := worker.NewPool(db, jobRegistry, cfg.WORKERS_COUNT, time.Duration(cfg.POLL_INTERVAL_SECONDS))
 	workerPool.Start(ctx)
 	defer workerPool.Stop()
 
