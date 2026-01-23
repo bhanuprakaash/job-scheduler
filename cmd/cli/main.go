@@ -49,7 +49,7 @@ func submitCmd() *cobra.Command {
 			}
 			defer conn.Close()
 			client := pb.NewJobSchedulerClient(conn)
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 			defer cancel()
 
 			resp, err := client.SubmitJob(ctx, &pb.SubmitJobRequest{
@@ -86,7 +86,7 @@ func getCmd() *cobra.Command {
 			defer conn.Close()
 
 			client := pb.NewJobSchedulerClient(conn)
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 			defer cancel()
 
 			resp, err := client.GetJob(ctx, &pb.GetJobRequest{JobId: jobID})
@@ -95,16 +95,17 @@ func getCmd() *cobra.Command {
 			}
 
 			fmt.Printf("Job Details:\n")
-			fmt.Printf("  ID:         %s\n", resp.JobId)
-			fmt.Printf("  Type:       %s\n", resp.Type)
-			fmt.Printf("  Status:     %s\n", resp.Status)
-			fmt.Printf("  Payload:    %s\n", resp.Payload)
-			fmt.Printf("  Created:    %s\n", resp.CreatedAt)
+			fmt.Printf("  ID:             %s\n", resp.JobId)
+			fmt.Printf("  Type:           %s\n", resp.Type)
+			fmt.Printf("  Status:         %s\n", resp.Status)
+			fmt.Printf("  Payload:    	  %s\n", resp.Payload)
+			fmt.Printf("  Created:    	  %s\n", resp.CreatedAt)
+			fmt.Printf("  Retry Count:    %s\n", resp.RetryCount)
 			if resp.CompletedAt != "" {
-				fmt.Printf("  Completed:  %s\n", resp.CompletedAt)
+				fmt.Printf("  Completed:      %s\n", resp.CompletedAt)
 			}
 			if resp.Status == "failed" {
-				fmt.Printf("  Error Message:  %s\n",resp.ErrorMessage)
+				fmt.Printf("  Error Message:    %s\n", resp.ErrorMessage)
 			}
 
 		},

@@ -44,4 +44,5 @@ message GetJobResponse {
   string created_at    = 5;
   string completed_at  = 6;
   string error_message = 7;
+  string retry_count   = 8;
 }

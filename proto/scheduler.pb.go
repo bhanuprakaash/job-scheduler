@@ -178,6 +178,7 @@ type GetJobResponse struct {
 	CreatedAt     string                 `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	CompletedAt   string                 `protobuf:"bytes,6,opt,name=completed_at,json=completedAt,proto3" json:"completed_at,omitempty"`
 	ErrorMessage  string                 `protobuf:"bytes,7,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
+	RetryCount    string                 `protobuf:"bytes,8,opt,name=retry_count,json=retryCount,proto3" json:"retry_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -261,6 +262,13 @@ func (x *GetJobResponse) GetErrorMessage() string {
 	return ""
 }
 
+func (x *GetJobResponse) GetRetryCount() string {
+	if x != nil {
+		return x.RetryCount
+	}
+	return ""
+}
+
 var File_proto_scheduler_proto protoreflect.FileDescriptor
 
 const file_proto_scheduler_proto_rawDesc = "" +
@@ -273,7 +281,7 @@ const file_proto_scheduler_proto_rawDesc = "" +
 	"\x06job_id\x18\x01 \x01(\tR\x05jobId\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\tR\x06status\"&\n" +
 	"\rGetJobRequest\x12\x15\n" +
-	"\x06job_id\x18\x01 \x01(\tR\x05jobId\"\xd4\x01\n" +
+	"\x06job_id\x18\x01 \x01(\tR\x05jobId\"\xf5\x01\n" +
 	"\x0eGetJobResponse\x12\x15\n" +
 	"\x06job_id\x18\x01 \x01(\tR\x05jobId\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12\x18\n" +
@@ -282,7 +290,9 @@ const file_proto_scheduler_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12!\n" +
 	"\fcompleted_at\x18\x06 \x01(\tR\vcompletedAt\x12#\n" +
-	"\rerror_message\x18\a \x01(\tR\ferrorMessage2\x95\x01\n" +
+	"\rerror_message\x18\a \x01(\tR\ferrorMessage\x12\x1f\n" +
+	"\vretry_count\x18\b \x01(\tR\n" +
+	"retryCount2\x95\x01\n" +
 	"\fJobScheduler\x12F\n" +
 	"\tSubmitJob\x12\x1b.scheduler.SubmitJobRequest\x1a\x1c.scheduler.SubmitJobResponse\x12=\n" +
 	"\x06GetJob\x12\x18.scheduler.GetJobRequest\x1a\x19.scheduler.GetJobResponseB.Z,github.com/bhanuprakaash/job-scheduler/protob\x06proto3"

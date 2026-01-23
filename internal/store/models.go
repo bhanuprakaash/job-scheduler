@@ -1,6 +1,9 @@
 package store
 
-import "time"
+import (
+	"database/sql"
+	"time"
+)
 
 type JobStatus string
 
@@ -12,13 +15,14 @@ const (
 )
 
 type Job struct {
-	ID           int64      `db:"id"`
-	Type         string     `db:"type"`
-	Payload      string     `db:"payload"`
-	Status       JobStatus  `db:"status"`
-	CreatedAt    time.Time  `db:"created_at"`
-	UpdatedAt    time.Time  `db:"updated_at"`
-	StartedAt    *time.Time `db:"started_at"`
-	CompletedAt  *time.Time `db:"completed_at"`
-	ErrorMessage string     `db:"last_err"`
+	ID           int64          `db:"id"`
+	Type         string         `db:"type"`
+	Payload      string         `db:"payload"`
+	Status       JobStatus      `db:"status"`
+	CreatedAt    time.Time      `db:"created_at"`
+	UpdatedAt    time.Time      `db:"updated_at"`
+	StartedAt    *time.Time     `db:"started_at"`
+	CompletedAt  *time.Time     `db:"completed_at"`
+	ErrorMessage sql.NullString `db:"last_err"`
+	RetryCount   int            `db:"retry_count"`
 }

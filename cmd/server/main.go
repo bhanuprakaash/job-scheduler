@@ -11,6 +11,7 @@ import (
 
 	"github.com/bhanuprakaash/job-scheduler/internal/api"
 	"github.com/bhanuprakaash/job-scheduler/internal/catalog/notifications"
+	"github.com/bhanuprakaash/job-scheduler/internal/catalog/notifications/email"
 	"github.com/bhanuprakaash/job-scheduler/internal/config"
 	"github.com/bhanuprakaash/job-scheduler/internal/logger"
 	"github.com/bhanuprakaash/job-scheduler/internal/store"
@@ -18,7 +19,6 @@ import (
 	pb "github.com/bhanuprakaash/job-scheduler/proto"
 	"google.golang.org/grpc"
 )
-
 
 func main() {
 	logger.Init()
@@ -38,8 +38,11 @@ func main() {
 	logger.Info("Connected to Database")
 
 	// job registry
+	resendService := email.NewResendEmailService(cfg.RESEND_EMAIL_API_KEY, cfg.RESEND_FROM_EMAIL)
+
 	jobRegistry := worker.NewRegistry()
 	jobRegistry.Register("dummy", &notifications.DummyJob{})
+	jobRegistry.Register("notification:email", email.NewEmailJob(resendService))
 
 	// worker pool
 	workerPool := worker.NewPool(db, jobRegistry, cfg.WORKERS_COUNT, time.Duration(cfg.POLL_INTERVAL_SECONDS))

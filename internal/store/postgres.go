@@ -66,7 +66,7 @@ func (s *Store) GetJobByID(ctx context.Context, id int64) (*Job, error) {
 
 	query :=
 		`
-		SELECT id, type, payload, status, created_at, updated_at, started_at, completed_at, last_err
+		SELECT id, type, payload, status, created_at, updated_at, started_at, completed_at, last_err, retry_count
 		FROM jobs
 		WHERE id = $1
 		`
@@ -81,6 +81,7 @@ func (s *Store) GetJobByID(ctx context.Context, id int64) (*Job, error) {
 			&job.StartedAt,
 			&job.CompletedAt,
 			&job.ErrorMessage,
+			&job.RetryCount,
 		)
 	if err != nil {
 		if err == pgx.ErrNoRows {

@@ -59,12 +59,16 @@ func (s *Server) GetJob(ctx context.Context, req *pb.GetJobRequest) (*pb.GetJobR
 	}
 
 	resp := &pb.GetJobResponse{
-		JobId:     strconv.FormatInt(job.ID, 10),
-		Type:      job.Type,
-		Payload:   job.Payload,
-		Status:    string(job.Status),
-		CreatedAt: job.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		ErrorMessage: job.ErrorMessage,
+		JobId:      strconv.FormatInt(job.ID, 10),
+		Type:       job.Type,
+		Payload:    job.Payload,
+		Status:     string(job.Status),
+		CreatedAt:  job.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		RetryCount: strconv.Itoa(job.RetryCount),
+	}
+
+	if job.ErrorMessage.Valid {
+		resp.ErrorMessage = job.ErrorMessage.String
 	}
 
 	if job.CompletedAt != nil {

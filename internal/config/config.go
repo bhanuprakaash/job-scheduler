@@ -13,6 +13,8 @@ type Config struct {
 	GRPC_PORT             string
 	WORKERS_COUNT         int
 	POLL_INTERVAL_SECONDS int
+	RESEND_EMAIL_API_KEY  string
+	RESEND_FROM_EMAIL     string
 }
 
 func Load() (*Config, error) {
@@ -23,34 +25,27 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("DB_URL is required")
 	}
 
-	workersCount, err := getEnvAsInt("WORKERS_COUNT", 5)
-	if err != nil {
-		return nil, fmt.Errorf("invalid WORKERS_COUNT: %w", err)
-	}
-
-	pollInterval, err := getEnvAsInt("POLL_INTERVAL_SECONDS", 2)
-	if err != nil {
-		return nil, fmt.Errorf("invalid POLL_INTERVAL_SECONDS: %w", err)
-	}
-
 	return &Config{
 		PG_DB_URL:             dbUrl,
 		GRPC_PORT:             getEnv("GRPC_PORT", "50052"),
-		POLL_INTERVAL_SECONDS: pollInterval,
-		WORKERS_COUNT:         workersCount,
+		POLL_INTERVAL_SECONDS: getEnvAsInt("POLL_INTERVAL_SECONDS", 2),
+		WORKERS_COUNT:         getEnvAsInt("WORKERS_COUNT", 5),
+		RESEND_EMAIL_API_KEY:  getEnv("RESEND_EMAIL_API_KEY", ""),
+		RESEND_FROM_EMAIL:     getEnv("RESEND_FROM_EMAIL", ""),
 	}, nil
 }
 
-func getEnvAsInt(key string, fallback int) (int, error) {
+func getEnvAsInt(key string, fallback int) int {
 	valueStr, exists := os.LookupEnv(key)
 	if !exists {
-		return fallback, nil
+		return fallback
 	}
 	value, err := strconv.Atoi(valueStr)
 	if err != nil {
-		return 0, fmt.Errorf("environment variable %s must be an integer", key)
+		fmt.Printf("environment variable %s must be an integer", key)
+		return fallback
 	}
-	return value, nil
+	return value
 }
 
 func getEnv(key, fallback string) string {
