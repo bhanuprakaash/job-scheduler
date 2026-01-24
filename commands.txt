@@ -1,0 +1,26 @@
+# ===================================
+# JOB SCHEDULER CLI CHEAT SHEET
+# ===================================
+
+# 1. EMAIL NOTIFICATION
+./job-cli submit --type notification:email --data '{
+  "to": "test@example.com", 
+  "subject": "Welcome to Flux Scheduler", 
+  "body": "Your account has been created successfully."
+}'
+
+
+# 2. IMAGE RESIZING
+./job-cli submit --type media:resize_image --data '{
+  "src_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/1200px-Python-logo-notext.svg.png",
+  "width": 300,
+  "output_path": "thumbnails/python-logo-300.jpg"
+}'
+
+
+# 3. DATABASE MAINTENANCE (Archive & Purge)
+./job-cli submit --type maintenance:archive --data '{
+  "older_than": "24h",
+  "batch": 100
+}'
+`
