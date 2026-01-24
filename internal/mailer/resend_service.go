@@ -1,4 +1,4 @@
-package email
+package mailer
 
 import (
 	"context"
@@ -34,5 +34,4 @@ func (r *ResendEmailService) Send(ctx context.Context, to, subject, body string)
 	}
 
 	return nil
-
 }

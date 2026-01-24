@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/bhanuprakaash/job-scheduler/internal/logger"
+	"github.com/bhanuprakaash/job-scheduler/internal/mailer"
 	"github.com/bhanuprakaash/job-scheduler/internal/store"
 )
 
@@ -16,12 +17,12 @@ type EmailPayload struct {
 	Body    string `json:"body"`
 }
 type EmailJob struct {
-	emailSender EmailSender
+	sender mailer.Sender
 }
 
-func NewEmailJob(emailSender EmailSender) *EmailJob {
+func NewEmailJob(sender mailer.Sender) *EmailJob {
 	return &EmailJob{
-		emailSender: emailSender,
+		sender: sender,
 	}
 }
 
@@ -38,7 +39,7 @@ func (e *EmailJob) Handle(ctx context.Context, job store.Job) error {
 		"subject", payload.Subject,
 		"retry", job.RetryCount)
 
-	err := e.emailSender.Send(ctx, payload.To, payload.Subject, payload.Body)
+	err := e.sender.Send(ctx, payload.To, payload.Subject, payload.Body)
 	if err != nil {
 		logger.Error("Email send failed",
 			"job_id", job.ID,

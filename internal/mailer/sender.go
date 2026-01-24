@@ -1,7 +1,7 @@
-package email
+package mailer
 
 import "context"
 
-type EmailSender interface {
+type Sender interface {
 	Send(ctx context.Context, to, subject, body string) error
 }
