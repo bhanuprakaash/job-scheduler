@@ -198,3 +198,47 @@ func (s *Store) HandleJobFailure(ctx context.Context, jobId int64, errMsg string
 	return nil
 
 }
+
+func (s *Store) GetArchivedJobs(ctx context.Context, duration time.Duration, limit int) ([]Job, error) {
+
+	query :=
+		`
+			SELECT id, type, payload, status, created_at, completed_at
+			FROM jobs
+			WHERE status = 'completed' AND completed_at < NOW() - $1::INTERVAL
+			LIMIT $2
+		`
+
+	interval := fmt.Sprintf("%f seconds", duration.Seconds())
+	rows, err := s.db.Query(ctx, query, interval, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var jobs []Job
+	for rows.Next() {
+		var j Job
+		if err := rows.Scan(&j.ID, &j.Type, &j.Payload, &j.Status, &j.CreatedAt, &j.CompletedAt); err != nil {
+			return nil, err
+		}
+		jobs = append(jobs, j)
+	}
+
+	return jobs, nil
+}
+
+func (s *Store) BatchDeleteJobs(ctx context.Context, ids []int64) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	query := `DELETE FROM jobs WHERE id = ANY($1)`
+	_, err := s.db.Exec(ctx, query, ids)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

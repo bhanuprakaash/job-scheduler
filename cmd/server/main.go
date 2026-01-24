@@ -28,7 +28,7 @@ func main() {
 	logger.Info("Connected to Database")
 
 	// job registry
-	jobRegistry, err := setupJobRegistry(cfg)
+	jobRegistry, err := setupJobRegistry(cfg, db)
 	if err != nil {
 		logger.Fatal("Failed to setup job registry", "error", err)
 	}

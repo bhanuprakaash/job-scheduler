@@ -2,14 +2,16 @@ package main
 
 import (
 	"github.com/bhanuprakaash/job-scheduler/internal/blob"
+	maintenance "github.com/bhanuprakaash/job-scheduler/internal/catalog/maintenance/archive"
 	"github.com/bhanuprakaash/job-scheduler/internal/catalog/media/resize"
 	"github.com/bhanuprakaash/job-scheduler/internal/catalog/notifications/email"
 	"github.com/bhanuprakaash/job-scheduler/internal/config"
 	"github.com/bhanuprakaash/job-scheduler/internal/mailer"
+	"github.com/bhanuprakaash/job-scheduler/internal/store"
 	"github.com/bhanuprakaash/job-scheduler/internal/worker"
 )
 
-func setupJobRegistry(cfg *config.Config) (*worker.Registry, error) {
+func setupJobRegistry(cfg *config.Config, db *store.Store) (*worker.Registry, error) {
 
 	resendService := mailer.NewResendEmailService(cfg.RESEND_EMAIL_API_KEY, cfg.RESEND_FROM_EMAIL)
 	minioBlob, err := blob.NewMinioBlob(cfg.MINIO_ID, cfg.MINIO_SECRET, cfg.MINIO_ENDPOINT, cfg.MINIO_BUCKET, cfg.MINIO_USE_SSL)
@@ -19,6 +21,7 @@ func setupJobRegistry(cfg *config.Config) (*worker.Registry, error) {
 	jobRegistry := worker.NewRegistry()
 	jobRegistry.Register("notification:email", email.NewEmailJob(resendService))
 	jobRegistry.Register("media:resize_image", resize.NewImageResizeJob(minioBlob))
+	jobRegistry.Register("maintenance:archive", maintenance.NewArchiveJob(db, minioBlob))
 
 	return jobRegistry, nil
 
