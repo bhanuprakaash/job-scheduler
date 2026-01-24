@@ -34,7 +34,7 @@ func main() {
 	}
 
 	// worker pool
-	workerPool := worker.NewPool(db, jobRegistry, cfg.WORKERS_COUNT, time.Duration(cfg.POLL_INTERVAL_SECONDS))
+	workerPool := worker.NewPool(db, jobRegistry, cfg.WORKERS_COUNT, time.Duration(cfg.POLL_INTERVAL_SECONDS)*time.Second)
 	workerPool.Start(ctx)
 	defer workerPool.Stop()
 

@@ -27,10 +27,10 @@ type imageResizePayload struct {
 }
 
 type ImageResizeJob struct {
-	blobUploader blob.BlobUploader
+	blobUploader blob.Uploader
 }
 
-func NewImageResizeJob(blobUploader blob.BlobUploader) *ImageResizeJob {
+func NewImageResizeJob(blobUploader blob.Uploader) *ImageResizeJob {
 	return &ImageResizeJob{
 		blobUploader: blobUploader,
 	}

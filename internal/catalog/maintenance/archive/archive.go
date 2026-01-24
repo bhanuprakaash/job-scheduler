@@ -19,10 +19,10 @@ type ArchiveJobPayload struct {
 
 type ArchiveJob struct {
 	store    *store.Store
-	uploader blob.BlobUploader
+	uploader blob.Uploader
 }
 
-func NewArchiveJob(store *store.Store, uploader blob.BlobUploader) *ArchiveJob {
+func NewArchiveJob(store *store.Store, uploader blob.Uploader) *ArchiveJob {
 	return &ArchiveJob{
 		store:    store,
 		uploader: uploader,
