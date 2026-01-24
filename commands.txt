@@ -23,4 +23,17 @@
   "older_than": "24h",
   "batch": 100
 }'
-`
+
+# 4. GENERATE INVOICE 
+./job-cli submit --type finance:invoice --data '{
+
+  "user_id": "cust_123",
+  "amount": 99.99,
+  "currency": "USD",
+  "date": "2026-01-24",
+  "invoice_id": "inv_2026_001",
+  "items": [
+    { "description": "Cloud Hosting - Jan", "quantity": 1, "unit_price": 75.00 },
+    { "description": "Managed DB Add-on", "quantity": 1, "unit_price": 24.99 }
+  ]
+}'

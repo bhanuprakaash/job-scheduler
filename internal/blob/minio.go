@@ -67,3 +67,15 @@ func (m *MinioBlob) Upload(ctx context.Context, data io.Reader, size int64, outp
 
 	return nil
 }
+
+func (m *MinioBlob) Exists(ctx context.Context, path string) (bool, error) {
+	_, err := m.MinioClient.StatObject(ctx, m.Bucket, path, minio.StatObjectOptions{})
+	if err != nil {
+		errResponse := minio.ToErrorResponse(err)
+		if errResponse.Code == "NoSuchKey" {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}

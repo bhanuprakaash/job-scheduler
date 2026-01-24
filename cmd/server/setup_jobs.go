@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/bhanuprakaash/job-scheduler/internal/blob"
+	"github.com/bhanuprakaash/job-scheduler/internal/catalog/finance/invoice"
 	maintenance "github.com/bhanuprakaash/job-scheduler/internal/catalog/maintenance/archive"
 	"github.com/bhanuprakaash/job-scheduler/internal/catalog/media/resize"
 	"github.com/bhanuprakaash/job-scheduler/internal/catalog/notifications/email"
@@ -22,6 +23,7 @@ func setupJobRegistry(cfg *config.Config, db *store.Store) (*worker.Registry, er
 	jobRegistry.Register("notification:email", email.NewEmailJob(resendService))
 	jobRegistry.Register("media:resize_image", resize.NewImageResizeJob(minioBlob))
 	jobRegistry.Register("maintenance:archive", maintenance.NewArchiveJob(db, minioBlob))
+	jobRegistry.Register("finance:invoice", invoice.NewInvoiceJob(minioBlob))
 
 	return jobRegistry, nil
 
