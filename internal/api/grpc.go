@@ -12,10 +12,10 @@ import (
 
 type Server struct {
 	pb.UnimplementedJobSchedulerServer
-	store *store.Store
+	store store.Storer
 }
 
-func NewServer(store *store.Store) *Server {
+func NewServer(store store.Storer) *Server {
 	return &Server{
 		store: store,
 	}

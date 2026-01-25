@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func runGRPCServer(ctx context.Context, cfg *config.Config, db *store.Store) {
+func runGRPCServer(ctx context.Context, cfg *config.Config, db store.Storer) {
 	listen, err := net.Listen("tcp", fmt.Sprintf(":%s", cfg.GRPC_PORT))
 	if err != nil {
 		logger.Fatal("Failed to listen", "error", err)

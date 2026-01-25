@@ -10,7 +10,7 @@ import (
 )
 
 type Pool struct {
-	store        *store.Store
+	store        store.Storer
 	registry     *Registry
 	numWorkers   int
 	pollInterval time.Duration
@@ -19,7 +19,7 @@ type Pool struct {
 	wg           sync.WaitGroup
 }
 
-func NewPool(s *store.Store, registry *Registry, numWorkers int, pollInterval time.Duration) *Pool {
+func NewPool(s store.Storer, registry *Registry, numWorkers int, pollInterval time.Duration) *Pool {
 	return &Pool{
 		store:        s,
 		numWorkers:   numWorkers,
