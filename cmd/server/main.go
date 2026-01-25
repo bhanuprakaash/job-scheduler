@@ -2,6 +2,10 @@ package main
 
 import (
 	"context"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 	"time"
 
 	"github.com/bhanuprakaash/job-scheduler/internal/config"
@@ -12,7 +16,8 @@ import (
 
 func main() {
 	logger.Init()
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	cfg, err := config.Load()
 	if err != nil {
@@ -38,7 +43,32 @@ func main() {
 	workerPool.Start(ctx)
 	defer workerPool.Stop()
 
-	// grpc connection
-	runGRPCServer(cfg, db)
+	var wg sync.WaitGroup
+
+	// grpc server
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		runGRPCServer(ctx, cfg, db)
+	}()
+
+	// http gateway
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		time.Sleep(100 * time.Millisecond)
+		runHTTPServer(ctx, cfg)
+	}()
+
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
+	<-sigCh
+
+	logger.Info("Interrupt received, shutting down...")
+	cancel()
+
+	wg.Wait()
+	logger.Info("All services stopped. Bye!")
 
 }

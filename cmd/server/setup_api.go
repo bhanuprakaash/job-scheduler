@@ -1,11 +1,9 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net"
-	"os"
-	"os/signal"
-	"syscall"
 
 	"github.com/bhanuprakaash/job-scheduler/internal/api"
 	"github.com/bhanuprakaash/job-scheduler/internal/config"
@@ -15,7 +13,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func runGRPCServer(cfg *config.Config, db *store.Store) {
+func runGRPCServer(ctx context.Context, cfg *config.Config, db *store.Store) {
 	listen, err := net.Listen("tcp", fmt.Sprintf(":%s", cfg.GRPC_PORT))
 	if err != nil {
 		logger.Fatal("Failed to listen", "error", err)
@@ -33,12 +31,7 @@ func runGRPCServer(cfg *config.Config, db *store.Store) {
 		}
 	}()
 
-	// Graceful Shutdown Logic
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
-	<-sigCh
-
+	<-ctx.Done()
 	logger.Info("Shutting down gRPC server")
 	grpcServer.GracefulStop()
-	logger.Info("Server stopped")
 }

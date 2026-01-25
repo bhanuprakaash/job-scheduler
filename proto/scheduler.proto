@@ -4,6 +4,7 @@ package scheduler;
 
 option go_package = "github.com/bhanuprakaash/job-scheduler/proto";
 
+import "google/api/annotations.proto";
 // JobScheduler is the core service for managing background tasks.
 //
 // It allows clients to submit asynchronous jobs (like emails, billing, resizing)
@@ -12,14 +13,23 @@ option go_package = "github.com/bhanuprakaash/job-scheduler/proto";
 service JobScheduler {
   // SubmitJob enqueues a new job for execution.
   // It returns the generated Job ID and Status immediately while the job runs in the background.
-  rpc SubmitJob(SubmitJobRequest) returns (SubmitJobResponse);
+  rpc SubmitJob(SubmitJobRequest) returns (SubmitJobResponse) {
+    option (google.api.http) = {
+      post: "/v1/jobs"
+      body: "*"
+    };
+  }
 
   // GetJob retrieves the current status and details of a specific job.
   // Use this to poll for completion or to retrieve the output of a finished job.
   // Errors:
   //  - NOT_FOUND: Returned if the provided job_id does not exist in the store.
   //  - INVALID_ARGUMENT: Returned if the job_id is malformed.
-  rpc GetJob(GetJobRequest) returns (GetJobResponse);
+  rpc GetJob(GetJobRequest) returns (GetJobResponse) {
+    option (google.api.http) = {
+      get: "/v1/jobs/{job_id}"
+    };
+  }
 }
 
 message SubmitJobRequest {

@@ -7,6 +7,7 @@
 package proto
 
 import (
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -273,7 +274,7 @@ var File_proto_scheduler_proto protoreflect.FileDescriptor
 
 const file_proto_scheduler_proto_rawDesc = "" +
 	"\n" +
-	"\x15proto/scheduler.proto\x12\tscheduler\"@\n" +
+	"\x15proto/scheduler.proto\x12\tscheduler\x1a\x1cgoogle/api/annotations.proto\"@\n" +
 	"\x10SubmitJobRequest\x12\x12\n" +
 	"\x04type\x18\x01 \x01(\tR\x04type\x12\x18\n" +
 	"\apayload\x18\x02 \x01(\tR\apayload\"B\n" +
@@ -292,10 +293,10 @@ const file_proto_scheduler_proto_rawDesc = "" +
 	"\fcompleted_at\x18\x06 \x01(\tR\vcompletedAt\x12#\n" +
 	"\rerror_message\x18\a \x01(\tR\ferrorMessage\x12\x1f\n" +
 	"\vretry_count\x18\b \x01(\tR\n" +
-	"retryCount2\x95\x01\n" +
-	"\fJobScheduler\x12F\n" +
-	"\tSubmitJob\x12\x1b.scheduler.SubmitJobRequest\x1a\x1c.scheduler.SubmitJobResponse\x12=\n" +
-	"\x06GetJob\x12\x18.scheduler.GetJobRequest\x1a\x19.scheduler.GetJobResponseB.Z,github.com/bhanuprakaash/job-scheduler/protob\x06proto3"
+	"retryCount2\xc5\x01\n" +
+	"\fJobScheduler\x12[\n" +
+	"\tSubmitJob\x12\x1b.scheduler.SubmitJobRequest\x1a\x1c.scheduler.SubmitJobResponse\"\x13\x82\xd3\xe4\x93\x02\r:\x01*\"\b/v1/jobs\x12X\n" +
+	"\x06GetJob\x12\x18.scheduler.GetJobRequest\x1a\x19.scheduler.GetJobResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/v1/jobs/{job_id}B.Z,github.com/bhanuprakaash/job-scheduler/protob\x06proto3"
 
 var (
 	file_proto_scheduler_proto_rawDescOnce sync.Once
