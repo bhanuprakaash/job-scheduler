@@ -8,6 +8,8 @@ import (
 	"github.com/bhanuprakaash/job-scheduler/internal/logger"
 	"github.com/bhanuprakaash/job-scheduler/internal/store"
 	pb "github.com/bhanuprakaash/job-scheduler/proto"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type Server struct {
@@ -77,4 +79,60 @@ func (s *Server) GetJob(ctx context.Context, req *pb.GetJobRequest) (*pb.GetJobR
 
 	return resp, nil
 
+}
+
+func (s *Server) ListJobs(ctx context.Context, req *pb.ListJobRequest) (*pb.ListJobResponse, error) {
+
+	limit := req.Limit
+	if limit <= 0 {
+		limit = 10
+	}
+
+	jobs, err := s.store.ListJobs(ctx, int(limit), int(req.Offset))
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to list jobs: %v", err)
+	}
+
+	var pbJobs []*pb.GetJobResponse
+	for _, j := range jobs.Jobs {
+		pbJobs = append(pbJobs, &pb.GetJobResponse{
+			JobId:        fmt.Sprintf("%d", j.ID),
+			Type:         j.Type,
+			Payload:      j.Payload,
+			Status:       string(j.Status),
+			CreatedAt:    j.CreatedAt.Format("2006-01-02T15:04:05Z"),
+			CompletedAt:  j.CompletedAt.Format("2006-01-02T15:04:05Z"),
+			ErrorMessage: j.ErrorMessage.String,
+			RetryCount:   strconv.Itoa(j.RetryCount),
+		})
+	}
+
+	var pagination *pb.PaginationMetaData
+	pagination = &pb.PaginationMetaData{
+		CurrentPage:  int32(jobs.Meta.CurrentPage),
+		TotalPages:   int32(jobs.Meta.TotalPages),
+		TotalRecords: jobs.Meta.TotalRecords,
+		Limit:        int32(jobs.Meta.Limit),
+	}
+
+	return &pb.ListJobResponse{
+		Jobs: pbJobs,
+		Meta: pagination,
+	}, nil
+
+}
+
+func (s *Server) GetJobStats(ctx context.Context, req *pb.GetJobStatsRequest) (*pb.GetJobStatusResponse, error) {
+	stats, err := s.store.GetStats(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to fetch stats %v", err)
+	}
+
+	return &pb.GetJobStatusResponse{
+		PendingJobs:   stats.Pending,
+		RunningJobs:   stats.Running,
+		CompletedJobs: stats.Completed,
+		FailedJobs:    stats.Failed,
+		TotalJobs:     stats.Pending + stats.Running + stats.Completed + stats.Failed,
+	}, nil
 }

@@ -30,6 +30,20 @@ service JobScheduler {
       get: "/v1/jobs/{job_id}"
     };
   }
+
+  // For the Jobs Table (Pagination)
+  rpc ListJobs(ListJobRequest) returns (ListJobResponse) {
+    option (google.api.http) = {
+      get: "/v1/jobs"
+    };
+  }
+
+  // Dashboard Stats (Pulse)
+  rpc GetJobStats(GetJobStatsRequest) returns (GetJobStatusResponse) {
+    option (google.api.http) = {
+      get: "/v1/stats"
+    };
+  }
 }
 
 message SubmitJobRequest {
@@ -55,4 +69,31 @@ message GetJobResponse {
   string completed_at  = 6;
   string error_message = 7;
   string retry_count   = 8;
+}
+
+message ListJobRequest {
+  int32 limit  = 1;
+  int32 offset = 2;
+}
+
+message PaginationMetaData {
+  int32 current_page  = 1;
+  int32 total_pages   = 2;
+  int64 total_records = 3;
+  int32 limit         = 4;
+}
+
+message ListJobResponse {
+  repeated GetJobResponse jobs = 1;
+  PaginationMetaData      meta = 2;
+}
+
+message GetJobStatsRequest {}
+
+message GetJobStatusResponse {
+  int64 total_jobs     = 1;
+  int64 pending_jobs   = 2;
+  int64 running_jobs   = 3;
+  int64 failed_jobs    = 4;
+  int64 completed_jobs = 5;
 }

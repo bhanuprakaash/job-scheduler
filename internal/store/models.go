@@ -26,3 +26,22 @@ type Job struct {
 	ErrorMessage sql.NullString `db:"last_err"`
 	RetryCount   int            `db:"retry_count"`
 }
+
+type PaginationMetadata struct {
+	CurrentPage  int   `json:"current_page"`
+	TotalPages   int   `json:"total_pages"`
+	TotalRecords int64 `json:"total_records"`
+	Limit        int   `json:"limit"`
+}
+
+type PaginatedJobs struct {
+	Jobs []Job              `json:"jobs"`
+	Meta PaginationMetadata `json:"meta"`
+}
+
+type JobStats struct {
+	Pending   int64
+	Running   int64
+	Completed int64
+	Failed    int64
+}

@@ -19,8 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	JobScheduler_SubmitJob_FullMethodName = "/scheduler.JobScheduler/SubmitJob"
-	JobScheduler_GetJob_FullMethodName    = "/scheduler.JobScheduler/GetJob"
+	JobScheduler_SubmitJob_FullMethodName   = "/scheduler.JobScheduler/SubmitJob"
+	JobScheduler_GetJob_FullMethodName      = "/scheduler.JobScheduler/GetJob"
+	JobScheduler_ListJobs_FullMethodName    = "/scheduler.JobScheduler/ListJobs"
+	JobScheduler_GetJobStats_FullMethodName = "/scheduler.JobScheduler/GetJobStats"
 )
 
 // JobSchedulerClient is the client API for JobScheduler service.
@@ -42,6 +44,10 @@ type JobSchedulerClient interface {
 	//   - NOT_FOUND: Returned if the provided job_id does not exist in the store.
 	//   - INVALID_ARGUMENT: Returned if the job_id is malformed.
 	GetJob(ctx context.Context, in *GetJobRequest, opts ...grpc.CallOption) (*GetJobResponse, error)
+	// For the Jobs Table (Pagination)
+	ListJobs(ctx context.Context, in *ListJobRequest, opts ...grpc.CallOption) (*ListJobResponse, error)
+	// Dashboard Stats (Pulse)
+	GetJobStats(ctx context.Context, in *GetJobStatsRequest, opts ...grpc.CallOption) (*GetJobStatusResponse, error)
 }
 
 type jobSchedulerClient struct {
@@ -72,6 +78,26 @@ func (c *jobSchedulerClient) GetJob(ctx context.Context, in *GetJobRequest, opts
 	return out, nil
 }
 
+func (c *jobSchedulerClient) ListJobs(ctx context.Context, in *ListJobRequest, opts ...grpc.CallOption) (*ListJobResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListJobResponse)
+	err := c.cc.Invoke(ctx, JobScheduler_ListJobs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jobSchedulerClient) GetJobStats(ctx context.Context, in *GetJobStatsRequest, opts ...grpc.CallOption) (*GetJobStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetJobStatusResponse)
+	err := c.cc.Invoke(ctx, JobScheduler_GetJobStats_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JobSchedulerServer is the server API for JobScheduler service.
 // All implementations must embed UnimplementedJobSchedulerServer
 // for forward compatibility.
@@ -91,6 +117,10 @@ type JobSchedulerServer interface {
 	//   - NOT_FOUND: Returned if the provided job_id does not exist in the store.
 	//   - INVALID_ARGUMENT: Returned if the job_id is malformed.
 	GetJob(context.Context, *GetJobRequest) (*GetJobResponse, error)
+	// For the Jobs Table (Pagination)
+	ListJobs(context.Context, *ListJobRequest) (*ListJobResponse, error)
+	// Dashboard Stats (Pulse)
+	GetJobStats(context.Context, *GetJobStatsRequest) (*GetJobStatusResponse, error)
 	mustEmbedUnimplementedJobSchedulerServer()
 }
 
@@ -106,6 +136,12 @@ func (UnimplementedJobSchedulerServer) SubmitJob(context.Context, *SubmitJobRequ
 }
 func (UnimplementedJobSchedulerServer) GetJob(context.Context, *GetJobRequest) (*GetJobResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetJob not implemented")
+}
+func (UnimplementedJobSchedulerServer) ListJobs(context.Context, *ListJobRequest) (*ListJobResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListJobs not implemented")
+}
+func (UnimplementedJobSchedulerServer) GetJobStats(context.Context, *GetJobStatsRequest) (*GetJobStatusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetJobStats not implemented")
 }
 func (UnimplementedJobSchedulerServer) mustEmbedUnimplementedJobSchedulerServer() {}
 func (UnimplementedJobSchedulerServer) testEmbeddedByValue()                      {}
@@ -164,6 +200,42 @@ func _JobScheduler_GetJob_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JobScheduler_ListJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListJobRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JobSchedulerServer).ListJobs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JobScheduler_ListJobs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JobSchedulerServer).ListJobs(ctx, req.(*ListJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JobScheduler_GetJobStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetJobStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JobSchedulerServer).GetJobStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JobScheduler_GetJobStats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JobSchedulerServer).GetJobStats(ctx, req.(*GetJobStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // JobScheduler_ServiceDesc is the grpc.ServiceDesc for JobScheduler service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -178,6 +250,14 @@ var JobScheduler_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetJob",
 			Handler:    _JobScheduler_GetJob_Handler,
+		},
+		{
+			MethodName: "ListJobs",
+			Handler:    _JobScheduler_ListJobs_Handler,
+		},
+		{
+			MethodName: "GetJobStats",
+			Handler:    _JobScheduler_GetJobStats_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

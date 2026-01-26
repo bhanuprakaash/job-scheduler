@@ -60,7 +60,11 @@ func (m *MemoryStore) HandleJobFailure(ctx context.Context, id int64, errMsg str
 	return nil
 }
 func (m *MemoryStore) BatchDeleteJobs(ctx context.Context, ids []int64) error { return nil }
-func (m *MemoryStore) Close()                                                 {}
+func (m *MemoryStore) ListJobs(ctx context.Context, limit, offset int) (*store.PaginatedJobs, error) {
+	return nil, nil
+}
+func (m *MemoryStore) GetStats(ctx context.Context) (*store.JobStats, error) { return nil, nil }
+func (m *MemoryStore) Close()                                                {}
 
 type HandlerFunc func(ctx context.Context, job store.Job) error
 

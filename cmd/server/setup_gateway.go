@@ -9,6 +9,7 @@ import (
 	"github.com/bhanuprakaash/job-scheduler/internal/logger"
 	pb "github.com/bhanuprakaash/job-scheduler/proto"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/rs/cors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -26,10 +27,18 @@ func runHTTPServer(ctx context.Context, cfg *config.Config) {
 		logger.Fatal("Faild to register gateway", "error", err)
 	}
 
-	httpPort := "8080"
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"http://localhost:5173"}, // Allow your Vite frontend
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders: []string{"Content-Type", "Authorization"},
+	})
+
+	handler := c.Handler(mux)
+
+	httpPort := cfg.HTTP_PORT
 	server := &http.Server{
 		Addr:    ":" + httpPort,
-		Handler: mux,
+		Handler: handler,
 	}
 
 	logger.Info("HTTP Gateway listening", "port", httpPort)

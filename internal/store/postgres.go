@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/bhanuprakaash/job-scheduler/internal/logger"
@@ -241,4 +242,106 @@ func (s *Store) BatchDeleteJobs(ctx context.Context, ids []int64) error {
 	}
 
 	return nil
+}
+
+func (s *Store) ListJobs(ctx context.Context, limit, offset int) (*PaginatedJobs, error) {
+
+	var total int64
+	if err := s.db.QueryRow(ctx, "SELECT COUNT(*) FROM jobs").Scan(&total); err != nil {
+		return nil, err
+	}
+
+	if total == 0 {
+		return &PaginatedJobs{
+			Jobs: []Job{},
+			Meta: PaginationMetadata{
+				CurrentPage:  1,
+				TotalPages:   0,
+				TotalRecords: 0,
+				Limit:        limit,
+			},
+		}, nil
+	}
+
+	query := `
+		SELECT id, type, payload, status, created_at, updated_at, started_at, completed_at, last_err, retry_count
+		FROM jobs
+		ORDER BY created_at DESC
+		LIMIT $1 OFFSET $2
+	`
+	rows, err := s.db.Query(ctx, query, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	jobs := []Job{}
+
+	for rows.Next() {
+		var j Job
+		if err := rows.Scan(
+			&j.ID,
+			&j.Type,
+			&j.Payload,
+			&j.Status,
+			&j.CreatedAt,
+			&j.UpdatedAt,
+			&j.StartedAt,
+			&j.CompletedAt,
+			&j.ErrorMessage,
+			&j.RetryCount,
+		); err != nil {
+			return nil, err
+		}
+		jobs = append(jobs, j)
+	}
+
+	currentPage := (offset / limit) + 1
+	totalPages := int(math.Ceil(float64(total) / float64(limit)))
+
+	return &PaginatedJobs{
+		Jobs: jobs,
+		Meta: PaginationMetadata{
+			CurrentPage:  currentPage,
+			TotalPages:   totalPages,
+			TotalRecords: total,
+			Limit:        limit,
+		},
+	}, nil
+}
+
+func (s *Store) GetStats(ctx context.Context) (*JobStats, error) {
+	query := `
+		SELECT status, COUNT(*)
+		FROM jobs
+		GROUP BY status
+		`
+
+	rows, err := s.db.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	stats := &JobStats{}
+	for rows.Next() {
+		var status string
+		var count int64
+		if err := rows.Scan(&status, &count); err != nil {
+			return nil, err
+		}
+
+		switch status {
+		case "pending":
+			stats.Pending = count
+		case "running":
+			stats.Running = count
+		case "completed":
+			stats.Completed = count
+		case "failed":
+			stats.Failed = count
+		}
+	}
+
+	return stats, nil
 }

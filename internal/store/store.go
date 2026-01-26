@@ -13,5 +13,7 @@ type Storer interface {
 	HandleJobFailure(ctx context.Context, jobId int64, errMsg string) error
 	GetArchivedJobs(ctx context.Context, duration time.Duration, limit int) ([]Job, error)
 	BatchDeleteJobs(ctx context.Context, ids []int64) error
+	ListJobs(ctx context.Context, limit, offset int) (*PaginatedJobs, error) 
+	GetStats(ctx context.Context) (*JobStats, error)
 	Close()
 }

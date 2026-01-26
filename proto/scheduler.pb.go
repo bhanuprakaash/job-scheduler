@@ -270,6 +270,290 @@ func (x *GetJobResponse) GetRetryCount() string {
 	return ""
 }
 
+type ListJobRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Limit         int32                  `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset        int32                  `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListJobRequest) Reset() {
+	*x = ListJobRequest{}
+	mi := &file_proto_scheduler_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListJobRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListJobRequest) ProtoMessage() {}
+
+func (x *ListJobRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_scheduler_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListJobRequest.ProtoReflect.Descriptor instead.
+func (*ListJobRequest) Descriptor() ([]byte, []int) {
+	return file_proto_scheduler_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *ListJobRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *ListJobRequest) GetOffset() int32 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
+type PaginationMetaData struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CurrentPage   int32                  `protobuf:"varint,1,opt,name=current_page,json=currentPage,proto3" json:"current_page,omitempty"`
+	TotalPages    int32                  `protobuf:"varint,2,opt,name=total_pages,json=totalPages,proto3" json:"total_pages,omitempty"`
+	TotalRecords  int64                  `protobuf:"varint,3,opt,name=total_records,json=totalRecords,proto3" json:"total_records,omitempty"`
+	Limit         int32                  `protobuf:"varint,4,opt,name=limit,proto3" json:"limit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PaginationMetaData) Reset() {
+	*x = PaginationMetaData{}
+	mi := &file_proto_scheduler_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PaginationMetaData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PaginationMetaData) ProtoMessage() {}
+
+func (x *PaginationMetaData) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_scheduler_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PaginationMetaData.ProtoReflect.Descriptor instead.
+func (*PaginationMetaData) Descriptor() ([]byte, []int) {
+	return file_proto_scheduler_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *PaginationMetaData) GetCurrentPage() int32 {
+	if x != nil {
+		return x.CurrentPage
+	}
+	return 0
+}
+
+func (x *PaginationMetaData) GetTotalPages() int32 {
+	if x != nil {
+		return x.TotalPages
+	}
+	return 0
+}
+
+func (x *PaginationMetaData) GetTotalRecords() int64 {
+	if x != nil {
+		return x.TotalRecords
+	}
+	return 0
+}
+
+func (x *PaginationMetaData) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type ListJobResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Jobs          []*GetJobResponse      `protobuf:"bytes,1,rep,name=jobs,proto3" json:"jobs,omitempty"`
+	Meta          *PaginationMetaData    `protobuf:"bytes,2,opt,name=meta,proto3" json:"meta,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListJobResponse) Reset() {
+	*x = ListJobResponse{}
+	mi := &file_proto_scheduler_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListJobResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListJobResponse) ProtoMessage() {}
+
+func (x *ListJobResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_scheduler_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListJobResponse.ProtoReflect.Descriptor instead.
+func (*ListJobResponse) Descriptor() ([]byte, []int) {
+	return file_proto_scheduler_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ListJobResponse) GetJobs() []*GetJobResponse {
+	if x != nil {
+		return x.Jobs
+	}
+	return nil
+}
+
+func (x *ListJobResponse) GetMeta() *PaginationMetaData {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+type GetJobStatsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetJobStatsRequest) Reset() {
+	*x = GetJobStatsRequest{}
+	mi := &file_proto_scheduler_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetJobStatsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetJobStatsRequest) ProtoMessage() {}
+
+func (x *GetJobStatsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_scheduler_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetJobStatsRequest.ProtoReflect.Descriptor instead.
+func (*GetJobStatsRequest) Descriptor() ([]byte, []int) {
+	return file_proto_scheduler_proto_rawDescGZIP(), []int{7}
+}
+
+type GetJobStatusResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TotalJobs     int64                  `protobuf:"varint,1,opt,name=total_jobs,json=totalJobs,proto3" json:"total_jobs,omitempty"`
+	PendingJobs   int64                  `protobuf:"varint,2,opt,name=pending_jobs,json=pendingJobs,proto3" json:"pending_jobs,omitempty"`
+	RunningJobs   int64                  `protobuf:"varint,3,opt,name=running_jobs,json=runningJobs,proto3" json:"running_jobs,omitempty"`
+	FailedJobs    int64                  `protobuf:"varint,4,opt,name=failed_jobs,json=failedJobs,proto3" json:"failed_jobs,omitempty"`
+	CompletedJobs int64                  `protobuf:"varint,5,opt,name=completed_jobs,json=completedJobs,proto3" json:"completed_jobs,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetJobStatusResponse) Reset() {
+	*x = GetJobStatusResponse{}
+	mi := &file_proto_scheduler_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetJobStatusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetJobStatusResponse) ProtoMessage() {}
+
+func (x *GetJobStatusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_scheduler_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetJobStatusResponse.ProtoReflect.Descriptor instead.
+func (*GetJobStatusResponse) Descriptor() ([]byte, []int) {
+	return file_proto_scheduler_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *GetJobStatusResponse) GetTotalJobs() int64 {
+	if x != nil {
+		return x.TotalJobs
+	}
+	return 0
+}
+
+func (x *GetJobStatusResponse) GetPendingJobs() int64 {
+	if x != nil {
+		return x.PendingJobs
+	}
+	return 0
+}
+
+func (x *GetJobStatusResponse) GetRunningJobs() int64 {
+	if x != nil {
+		return x.RunningJobs
+	}
+	return 0
+}
+
+func (x *GetJobStatusResponse) GetFailedJobs() int64 {
+	if x != nil {
+		return x.FailedJobs
+	}
+	return 0
+}
+
+func (x *GetJobStatusResponse) GetCompletedJobs() int64 {
+	if x != nil {
+		return x.CompletedJobs
+	}
+	return 0
+}
+
 var File_proto_scheduler_proto protoreflect.FileDescriptor
 
 const file_proto_scheduler_proto_rawDesc = "" +
@@ -293,10 +577,34 @@ const file_proto_scheduler_proto_rawDesc = "" +
 	"\fcompleted_at\x18\x06 \x01(\tR\vcompletedAt\x12#\n" +
 	"\rerror_message\x18\a \x01(\tR\ferrorMessage\x12\x1f\n" +
 	"\vretry_count\x18\b \x01(\tR\n" +
-	"retryCount2\xc5\x01\n" +
+	"retryCount\">\n" +
+	"\x0eListJobRequest\x12\x14\n" +
+	"\x05limit\x18\x01 \x01(\x05R\x05limit\x12\x16\n" +
+	"\x06offset\x18\x02 \x01(\x05R\x06offset\"\x93\x01\n" +
+	"\x12PaginationMetaData\x12!\n" +
+	"\fcurrent_page\x18\x01 \x01(\x05R\vcurrentPage\x12\x1f\n" +
+	"\vtotal_pages\x18\x02 \x01(\x05R\n" +
+	"totalPages\x12#\n" +
+	"\rtotal_records\x18\x03 \x01(\x03R\ftotalRecords\x12\x14\n" +
+	"\x05limit\x18\x04 \x01(\x05R\x05limit\"s\n" +
+	"\x0fListJobResponse\x12-\n" +
+	"\x04jobs\x18\x01 \x03(\v2\x19.scheduler.GetJobResponseR\x04jobs\x121\n" +
+	"\x04meta\x18\x02 \x01(\v2\x1d.scheduler.PaginationMetaDataR\x04meta\"\x14\n" +
+	"\x12GetJobStatsRequest\"\xc3\x01\n" +
+	"\x14GetJobStatusResponse\x12\x1d\n" +
+	"\n" +
+	"total_jobs\x18\x01 \x01(\x03R\ttotalJobs\x12!\n" +
+	"\fpending_jobs\x18\x02 \x01(\x03R\vpendingJobs\x12!\n" +
+	"\frunning_jobs\x18\x03 \x01(\x03R\vrunningJobs\x12\x1f\n" +
+	"\vfailed_jobs\x18\x04 \x01(\x03R\n" +
+	"failedJobs\x12%\n" +
+	"\x0ecompleted_jobs\x18\x05 \x01(\x03R\rcompletedJobs2\xfc\x02\n" +
 	"\fJobScheduler\x12[\n" +
 	"\tSubmitJob\x12\x1b.scheduler.SubmitJobRequest\x1a\x1c.scheduler.SubmitJobResponse\"\x13\x82\xd3\xe4\x93\x02\r:\x01*\"\b/v1/jobs\x12X\n" +
-	"\x06GetJob\x12\x18.scheduler.GetJobRequest\x1a\x19.scheduler.GetJobResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/v1/jobs/{job_id}B.Z,github.com/bhanuprakaash/job-scheduler/protob\x06proto3"
+	"\x06GetJob\x12\x18.scheduler.GetJobRequest\x1a\x19.scheduler.GetJobResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/v1/jobs/{job_id}\x12S\n" +
+	"\bListJobs\x12\x19.scheduler.ListJobRequest\x1a\x1a.scheduler.ListJobResponse\"\x10\x82\xd3\xe4\x93\x02\n" +
+	"\x12\b/v1/jobs\x12`\n" +
+	"\vGetJobStats\x12\x1d.scheduler.GetJobStatsRequest\x1a\x1f.scheduler.GetJobStatusResponse\"\x11\x82\xd3\xe4\x93\x02\v\x12\t/v1/statsB.Z,github.com/bhanuprakaash/job-scheduler/protob\x06proto3"
 
 var (
 	file_proto_scheduler_proto_rawDescOnce sync.Once
@@ -310,23 +618,34 @@ func file_proto_scheduler_proto_rawDescGZIP() []byte {
 	return file_proto_scheduler_proto_rawDescData
 }
 
-var file_proto_scheduler_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_proto_scheduler_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_proto_scheduler_proto_goTypes = []any{
-	(*SubmitJobRequest)(nil),  // 0: scheduler.SubmitJobRequest
-	(*SubmitJobResponse)(nil), // 1: scheduler.SubmitJobResponse
-	(*GetJobRequest)(nil),     // 2: scheduler.GetJobRequest
-	(*GetJobResponse)(nil),    // 3: scheduler.GetJobResponse
+	(*SubmitJobRequest)(nil),     // 0: scheduler.SubmitJobRequest
+	(*SubmitJobResponse)(nil),    // 1: scheduler.SubmitJobResponse
+	(*GetJobRequest)(nil),        // 2: scheduler.GetJobRequest
+	(*GetJobResponse)(nil),       // 3: scheduler.GetJobResponse
+	(*ListJobRequest)(nil),       // 4: scheduler.ListJobRequest
+	(*PaginationMetaData)(nil),   // 5: scheduler.PaginationMetaData
+	(*ListJobResponse)(nil),      // 6: scheduler.ListJobResponse
+	(*GetJobStatsRequest)(nil),   // 7: scheduler.GetJobStatsRequest
+	(*GetJobStatusResponse)(nil), // 8: scheduler.GetJobStatusResponse
 }
 var file_proto_scheduler_proto_depIdxs = []int32{
-	0, // 0: scheduler.JobScheduler.SubmitJob:input_type -> scheduler.SubmitJobRequest
-	2, // 1: scheduler.JobScheduler.GetJob:input_type -> scheduler.GetJobRequest
-	1, // 2: scheduler.JobScheduler.SubmitJob:output_type -> scheduler.SubmitJobResponse
-	3, // 3: scheduler.JobScheduler.GetJob:output_type -> scheduler.GetJobResponse
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	3, // 0: scheduler.ListJobResponse.jobs:type_name -> scheduler.GetJobResponse
+	5, // 1: scheduler.ListJobResponse.meta:type_name -> scheduler.PaginationMetaData
+	0, // 2: scheduler.JobScheduler.SubmitJob:input_type -> scheduler.SubmitJobRequest
+	2, // 3: scheduler.JobScheduler.GetJob:input_type -> scheduler.GetJobRequest
+	4, // 4: scheduler.JobScheduler.ListJobs:input_type -> scheduler.ListJobRequest
+	7, // 5: scheduler.JobScheduler.GetJobStats:input_type -> scheduler.GetJobStatsRequest
+	1, // 6: scheduler.JobScheduler.SubmitJob:output_type -> scheduler.SubmitJobResponse
+	3, // 7: scheduler.JobScheduler.GetJob:output_type -> scheduler.GetJobResponse
+	6, // 8: scheduler.JobScheduler.ListJobs:output_type -> scheduler.ListJobResponse
+	8, // 9: scheduler.JobScheduler.GetJobStats:output_type -> scheduler.GetJobStatusResponse
+	6, // [6:10] is the sub-list for method output_type
+	2, // [2:6] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_proto_scheduler_proto_init() }
@@ -340,7 +659,7 @@ func file_proto_scheduler_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_scheduler_proto_rawDesc), len(file_proto_scheduler_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
