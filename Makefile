@@ -1,10 +1,14 @@
+#env
+-include .env
+export
+
 # Variables
 SERVER_BIN=bin/server
 CLI_BIN=bin/job-cli
 GO_FILES=$(shell find . -name '*.go')
 
 
-.PHONY: all build clean run
+.PHONY: all build clean run test
 
 all: clean setup proto build
 
@@ -23,6 +27,10 @@ build-cli:
 run:
 	@echo "Running Server..."
 	-@go run cmd/server/*.go
+
+test:
+	@echo "🧪 Running Unit Tests..."
+	@go test -v ./...
 
 
 # Clean build artifacts
