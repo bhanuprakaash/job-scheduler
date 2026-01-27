@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/bhanuprakaash/job-scheduler/internal/logger"
+	"github.com/bhanuprakaash/job-scheduler/internal/metrics"
 	"github.com/bhanuprakaash/job-scheduler/internal/store"
 )
 
@@ -102,6 +103,11 @@ func (p *Pool) StartDispatcher(ctx context.Context) {
 func (p *Pool) ProcessNextJob(ctx context.Context, workerId int, job store.Job) {
 	logger.Info("Worker processing the", "worker", workerId, "job_id", job.ID)
 
+	metrics.ActiveWorkers.Inc()
+	defer metrics.ActiveWorkers.Dec()
+
+	startTime := time.Now()
+
 	handler, err := p.registry.Get(job.Type)
 	if err != nil {
 		logger.Error("no handler found", "error", err)
@@ -109,16 +115,20 @@ func (p *Pool) ProcessNextJob(ctx context.Context, workerId int, job store.Job) 
 		if updateFail != nil {
 			logger.Error("CRITICAL: Failed to update job status", "error", updateFail)
 		}
+		metrics.JobsProcessed.WithLabelValues(job.Type, "failed").Inc()
 		return
 	}
 
 	err = handler.Handle(ctx, job)
+	duration := time.Since(startTime).Seconds()
+	metrics.JobDuration.WithLabelValues(job.Type).Observe(duration)
 	if err != nil {
 		logger.Error("Job failed ", "worker_id", workerId, "job_id", job.ID, "error", err)
 		failErr := p.store.HandleJobFailure(ctx, job.ID, err.Error())
 		if failErr != nil {
 			logger.Error("CRITICAL: Failed to update job status", "error", failErr)
 		}
+		metrics.JobsProcessed.WithLabelValues(job.Type, "failed").Inc()
 		return
 	}
 
@@ -127,6 +137,8 @@ func (p *Pool) ProcessNextJob(ctx context.Context, workerId int, job store.Job) 
 		logger.Error("CRITICAL: Failed to update job status", "error", updateFail)
 		return
 	}
+
+	metrics.JobsProcessed.WithLabelValues(job.Type, "success").Inc()
 
 	logger.Info("Worker completed the job", "worker", workerId, "job_id", job.ID)
 

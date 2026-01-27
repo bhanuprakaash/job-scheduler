@@ -10,6 +10,7 @@ import (
 	"github.com/bhanuprakaash/job-scheduler/internal/logger"
 	"github.com/bhanuprakaash/job-scheduler/internal/store"
 	pb "github.com/bhanuprakaash/job-scheduler/proto"
+	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"google.golang.org/grpc"
 )
 
@@ -19,8 +20,14 @@ func runGRPCServer(ctx context.Context, cfg *config.Config, db store.Storer) {
 		logger.Fatal("Failed to listen", "error", err)
 	}
 
-	grpcServer := grpc.NewServer()
+
+	grpcServer := grpc.NewServer(
+		grpc.StreamInterceptor(grpc_prometheus.StreamServerInterceptor),
+		grpc.UnaryInterceptor(grpc_prometheus.UnaryServerInterceptor),
+	)
 	pb.RegisterJobSchedulerServer(grpcServer, api.NewServer(db))
+
+	grpc_prometheus.Register(grpcServer)
 
 	logger.Info("gRPC server listening", "port", cfg.GRPC_PORT)
 

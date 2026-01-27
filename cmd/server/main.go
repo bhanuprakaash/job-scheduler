@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"net/http"
 	"os"
 	"os/signal"
 	"sync"
@@ -12,6 +13,7 @@ import (
 	"github.com/bhanuprakaash/job-scheduler/internal/logger"
 	"github.com/bhanuprakaash/job-scheduler/internal/store"
 	"github.com/bhanuprakaash/job-scheduler/internal/worker"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -59,6 +61,18 @@ func main() {
 
 		time.Sleep(100 * time.Millisecond)
 		runHTTPServer(ctx, cfg)
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		logger.Info("Metrics server starting", "port", "9090")
+
+		http.Handle("/metrics", promhttp.Handler())
+
+		if err := http.ListenAndServe(":9090", nil); err != nil {
+			logger.Error("Metrics server failed", "error", err)
+		}
 	}()
 
 	sigCh := make(chan os.Signal, 1)

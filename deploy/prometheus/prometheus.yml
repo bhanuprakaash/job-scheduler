@@ -1,0 +1,8 @@
+global:
+  scrape_interval: 2s # Very fast for local debugging
+
+scrape_configs:
+  - job_name: 'job-scheduler-local'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['host.docker.internal:9090']
