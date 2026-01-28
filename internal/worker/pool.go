@@ -91,6 +91,8 @@ func (p *Pool) StartDispatcher(ctx context.Context) {
 				select {
 				case <-p.stopCh:
 					return
+				case <-ctx.Done():
+					return
 				case p.jobCh <- job:
 					// inserted
 				}

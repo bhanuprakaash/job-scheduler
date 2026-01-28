@@ -18,8 +18,10 @@ import (
 
 func main() {
 	logger.Init()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+
+	appCtx := context.Background()
+	serverCtx, serverCancel := context.WithCancel(appCtx)
+	defer serverCancel()
 
 	cfg, err := config.Load()
 	if err != nil {
@@ -27,11 +29,10 @@ func main() {
 	}
 
 	// db connection
-	db, err := store.NewStore(ctx, cfg.PG_DB_URL)
+	db, err := store.NewStore(appCtx, cfg.PG_DB_URL)
 	if err != nil {
 		logger.Fatal("Failed to ping the store", "error", err)
 	}
-	defer db.Close()
 	logger.Info("Connected to Database")
 
 	// job registry
@@ -42,8 +43,7 @@ func main() {
 
 	// worker pool
 	workerPool := worker.NewPool(db, jobRegistry, cfg.WORKERS_COUNT, time.Duration(cfg.POLL_INTERVAL_SECONDS)*time.Second)
-	workerPool.Start(ctx)
-	defer workerPool.Stop()
+	workerPool.Start(serverCtx)
 
 	var wg sync.WaitGroup
 
@@ -51,7 +51,7 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		runGRPCServer(ctx, cfg, db)
+		runGRPCServer(serverCtx, cfg, db)
 	}()
 
 	// http gateway
@@ -60,19 +60,28 @@ func main() {
 		defer wg.Done()
 
 		time.Sleep(100 * time.Millisecond)
-		runHTTPServer(ctx, cfg)
+		runHTTPServer(serverCtx, cfg)
 	}()
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		logger.Info("Metrics server starting", "port", "9090")
 
-		http.Handle("/metrics", promhttp.Handler())
+		mux := http.NewServeMux()
+		mux.Handle("/metrics", promhttp.Handler())
+		srv := &http.Server{Addr: ":9090", Handler: mux}
 
-		if err := http.ListenAndServe(":9090", nil); err != nil {
-			logger.Error("Metrics server failed", "error", err)
-		}
+		go func() {
+			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				logger.Error("Metrics server error", "error", err)
+			}
+		}()
+
+		<-serverCtx.Done()
+
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		srv.Shutdown(shutdownCtx)
 	}()
 
 	sigCh := make(chan os.Signal, 1)
@@ -80,9 +89,28 @@ func main() {
 	<-sigCh
 
 	logger.Info("Interrupt received, shutting down...")
-	cancel()
+	serverCancel()
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
 
-	wg.Wait()
-	logger.Info("All services stopped. Bye!")
+	select {
+	case <-done:
+		logger.Info("Network services stopped")
+	case <-time.After(5 * time.Second):
+		logger.Info("Network services timed out shutting down")
+	}
+
+	logger.Info("Network services stopped")
+
+	logger.Info("Draining worker pool...")
+	workerPool.Stop()
+	logger.Info("Worker pool drained")
+
+	db.Close()
+	logger.Info("Database closed")
+	logger.Info("Bye!")
 
 }

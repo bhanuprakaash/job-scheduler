@@ -51,7 +51,7 @@ func (r *ImageResizeJob) Handle(ctx context.Context, job store.Job) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("received non-200 status code:%w", err)
+		return fmt.Errorf("received non-200 status code:%d", resp.StatusCode)
 	}
 
 	srcImg, _, err := image.Decode(resp.Body)
@@ -73,6 +73,9 @@ func (r *ImageResizeJob) Handle(ctx context.Context, job store.Job) error {
 	}
 
 	err = r.blobUploader.Upload(ctx, &buf, int64(buf.Len()), payload.OutputPath, "image/jpeg")
+	if err != nil {
+		return err
+	}
 
 	duration := time.Since(start)
 
