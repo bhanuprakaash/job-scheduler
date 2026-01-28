@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -69,7 +70,8 @@ func main() {
 
 		mux := http.NewServeMux()
 		mux.Handle("/metrics", promhttp.Handler())
-		srv := &http.Server{Addr: ":9090", Handler: mux}
+		metricsAdress := fmt.Sprintf(":%s", cfg.METRICS_PORT)
+		srv := &http.Server{Addr: metricsAdress, Handler: mux}
 
 		go func() {
 			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {

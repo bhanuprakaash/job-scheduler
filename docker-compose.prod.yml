@@ -1,0 +1,103 @@
+networks:
+  flux_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  minio_data:
+  prometheus_data:
+  grafana_data:
+
+services:
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: job
+    restart: always
+    ports:
+      - ${HTTP_PORT}:${HTTP_PORT}
+      - ${GRPC_PORT}:${GRPC_PORT}
+      - ${SCHEDULER_METRICS_HOST_PORT}:${METRICS_PORT}
+    environment:
+      PG_DB_URL: ${PG_DB_URL}
+      GRPC_PORT: ${GRPC_PORT}
+      WORKERS_COUNT: ${WORKERS_COUNT}
+      POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS}
+      HTTP_PORT: ${HTTP_PORT}
+      METRICS_PORT: ${METRICS_PORT}
+      RESEND_EMAIL_API_KEY: ${RESEND_EMAIL_API_KEY}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL}
+      MINIO_ID: ${MINIO_ID}
+      MINIO_SECRET: ${MINIO_SECRET}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      MINIO_BUCKET: ${MINIO_BUCKET}
+      MINIO_USE_SSL: ${MINIO_USE_SSL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - flux_network
+    read_only: true
+  
+  postgres:
+    image: postgres:15-alpine
+    container_name: job_scheduler_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    networks:
+      - flux_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=15d'
+    ports:
+      - ${PROMETHEUS_HOST_PORT}:9090
+    networks:
+      - flux_network
+
+  grafana:
+    image: grafana/grafana:latest
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD}
+    ports:
+      - ${GR_PORT}:${GR_PORT}
+    depends_on:
+      - prometheus
+    networks:
+      - flux_network
+
+  minio:
+    image: minio/minio:latest
+    container_name: job_scheduler_minio
+    command: server /data --console-address ":9001"
+    restart: always
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ID}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - flux_network
+

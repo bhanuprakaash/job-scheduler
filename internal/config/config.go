@@ -14,6 +14,7 @@ type Config struct {
 	WORKERS_COUNT         int
 	POLL_INTERVAL_SECONDS int
 	HTTP_PORT             string
+	METRICS_PORT          string
 
 	// email
 	RESEND_EMAIL_API_KEY string
@@ -42,6 +43,7 @@ func Load() (*Config, error) {
 		POLL_INTERVAL_SECONDS: getEnvAsInt("POLL_INTERVAL_SECONDS", 2),
 		WORKERS_COUNT:         getEnvAsInt("WORKERS_COUNT", 5),
 		HTTP_PORT:             getEnv("HTTP_PORT", "8080"),
+		METRICS_PORT:          getEnv("METRICS_PORT", "9090"),
 
 		RESEND_EMAIL_API_KEY: getEnv("RESEND_EMAIL_API_KEY", ""),
 		RESEND_FROM_EMAIL:    getEnv("RESEND_FROM_EMAIL", ""),
