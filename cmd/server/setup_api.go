@@ -9,23 +9,24 @@ import (
 	"github.com/bhanuprakaash/job-scheduler/internal/config"
 	"github.com/bhanuprakaash/job-scheduler/internal/logger"
 	"github.com/bhanuprakaash/job-scheduler/internal/store"
+	"github.com/bhanuprakaash/job-scheduler/internal/worker"
 	pb "github.com/bhanuprakaash/job-scheduler/proto"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"google.golang.org/grpc"
 )
 
-func runGRPCServer(ctx context.Context, cfg *config.Config, db store.Storer) {
+func runGRPCServer(ctx context.Context, cfg *config.Config, db store.Storer, jobRegistry *worker.Registry) {
 	listen, err := net.Listen("tcp", fmt.Sprintf(":%s", cfg.GRPC_PORT))
 	if err != nil {
 		logger.Fatal("Failed to listen", "error", err)
 	}
 
-
 	grpcServer := grpc.NewServer(
 		grpc.StreamInterceptor(grpc_prometheus.StreamServerInterceptor),
 		grpc.UnaryInterceptor(grpc_prometheus.UnaryServerInterceptor),
 	)
-	pb.RegisterJobSchedulerServer(grpcServer, api.NewServer(db))
+
+	pb.RegisterJobSchedulerServer(grpcServer, api.NewServer(db, jobRegistry))
 
 	grpc_prometheus.Register(grpcServer)
 

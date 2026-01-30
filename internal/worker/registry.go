@@ -33,3 +33,11 @@ func (r *Registry) Get(jobType string) (Handler, error) {
 
 	return handler, nil
 }
+
+func (r *Registry) Has(jobType string) bool {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	_, exists := r.handlers[jobType]
+	return exists
+}

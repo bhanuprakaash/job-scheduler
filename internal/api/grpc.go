@@ -7,6 +7,7 @@ import (
 
 	"github.com/bhanuprakaash/job-scheduler/internal/logger"
 	"github.com/bhanuprakaash/job-scheduler/internal/store"
+	"github.com/bhanuprakaash/job-scheduler/internal/worker"
 	pb "github.com/bhanuprakaash/job-scheduler/proto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -14,12 +15,14 @@ import (
 
 type Server struct {
 	pb.UnimplementedJobSchedulerServer
-	store store.Storer
+	store    store.Storer
+	registry *worker.Registry
 }
 
-func NewServer(store store.Storer) *Server {
+func NewServer(store store.Storer, registry *worker.Registry) *Server {
 	return &Server{
-		store: store,
+		store:    store,
+		registry: registry,
 	}
 }
 
@@ -29,6 +32,11 @@ func (s *Server) SubmitJob(ctx context.Context, req *pb.SubmitJobRequest) (*pb.S
 	if req.Type == "" {
 		return nil, fmt.Errorf("job type is required")
 	}
+	if !s.registry.Has(req.Type) {
+		logger.Error("Invalid job type submitted", "type", req.Type)
+		return nil, status.Errorf(codes.InvalidArgument, "job type '%s' is not registered", req.Type)
+	}
+	
 	if req.Payload == "" {
 		req.Payload = "{}"
 	}
