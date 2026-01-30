@@ -22,6 +22,7 @@ services:
     environment:
       PG_DB_URL: ${PG_DB_URL}
       GRPC_PORT: ${GRPC_PORT}
+      GRPC_HOST: ${GRPC_HOST}
       WORKERS_COUNT: ${WORKERS_COUNT}
       POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS}
       HTTP_PORT: ${HTTP_PORT}

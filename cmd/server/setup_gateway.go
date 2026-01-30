@@ -20,7 +20,7 @@ func runHTTPServer(ctx context.Context, cfg *config.Config) {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	}
 
-	grpcEndpoint := fmt.Sprintf("localhost:%s", cfg.GRPC_PORT)
+	grpcEndpoint := fmt.Sprintf("%s:%s", cfg.GRPC_HOST, cfg.GRPC_PORT)
 
 	err := pb.RegisterJobSchedulerHandlerFromEndpoint(ctx, mux, grpcEndpoint, opts)
 	if err != nil {

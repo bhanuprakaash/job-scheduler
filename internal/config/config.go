@@ -11,6 +11,7 @@ import (
 type Config struct {
 	PG_DB_URL             string
 	GRPC_PORT             string
+	GRPC_HOST             string
 	WORKERS_COUNT         int
 	POLL_INTERVAL_SECONDS int
 	HTTP_PORT             string
@@ -40,6 +41,7 @@ func Load() (*Config, error) {
 	return &Config{
 		PG_DB_URL:             dbUrl,
 		GRPC_PORT:             getEnv("GRPC_PORT", "50052"),
+		GRPC_HOST:             getEnv("GRPC_HOST", "localhost"),
 		POLL_INTERVAL_SECONDS: getEnvAsInt("POLL_INTERVAL_SECONDS", 2),
 		WORKERS_COUNT:         getEnvAsInt("WORKERS_COUNT", 5),
 		HTTP_PORT:             getEnv("HTTP_PORT", "8080"),
