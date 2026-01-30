@@ -345,3 +345,25 @@ func (s *Store) GetStats(ctx context.Context) (*JobStats, error) {
 
 	return stats, nil
 }
+
+func (s *Store) RepeatStuckJobs(ctx context.Context, interval time.Duration) (int64, error) {
+	query :=
+		`	
+			UPDATE jobs
+			SET status = 'pending',
+				updated_at = NOW(),
+				last_err = 'job execution timed out (stuck)'
+			WHERE 
+				status = 'running'
+				AND started_at < NOW() - $1::INTERVAL
+		`
+
+	intervalStr := fmt.Sprintf("%f seconds", interval.Seconds())
+	result, err := s.db.Exec(ctx, query, intervalStr)
+	if err != nil {
+		return 0, err
+	}
+
+	return result.RowsAffected(), nil
+
+}

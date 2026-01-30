@@ -65,6 +65,9 @@ func (m *MemoryStore) ListJobs(ctx context.Context, limit, offset int) (*store.P
 }
 func (m *MemoryStore) GetStats(ctx context.Context) (*store.JobStats, error) { return nil, nil }
 func (m *MemoryStore) Close()                                                {}
+func (m *MemoryStore) RepeatStuckJobs(ctx context.Context, interval time.Duration) (int64, error) {
+	return 0, nil
+}
 
 type HandlerFunc func(ctx context.Context, job store.Job) error
 

@@ -70,11 +70,25 @@ func (p *Pool) StartDispatcher(ctx context.Context) {
 	ticker := time.NewTicker(p.pollInterval)
 	defer ticker.Stop()
 
+	reaperTicker := time.NewTicker(1 * time.Minute)
+	defer reaperTicker.Stop()
+
 	for {
 		select {
 		case <-p.stopCh:
 			logger.Info("Dispatcher shutting down")
 			return
+
+		case <-reaperTicker.C:
+			stuckTime := 10 * time.Minute
+			count, err := p.store.RepeatStuckJobs(ctx, stuckTime)
+			if err != nil {
+				logger.Error("failed to reset stuck jobs", "error", err)
+				continue
+			}
+			if count > 0 {
+				logger.Info("Reaper reset stuck jobs", "count", count)
+			}
 
 		case <-ticker.C:
 			jobs, err := p.store.GetPendingJobs(ctx, 10)
