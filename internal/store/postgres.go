@@ -169,34 +169,60 @@ func (s *Store) UpdateJobStatus(ctx context.Context, status JobStatus, id int64)
 
 func (s *Store) HandleJobFailure(ctx context.Context, jobId int64, errMsg string) error {
 
-	query :=
-		`
-			UPDATE jobs
-			SET
-				retry_count = retry_count + 1,
-				last_err = $2,
-				status = CASE 
-					WHEN retry_count + 1 >= max_retries THEN 'failed'
-					ELSE 'pending'
-				END,
-
-				next_run_at = CASE 
-					WHEN retry_count + 1 >= max_retries THEN next_run_at
-					ELSE NOW() + (POWER(2, retry_count + 1) * INTERVAL '1 second')
-				END,
-
-				completed_at = CASE
-					WHEN retry_count + 1 >= max_retries THEN NOW()
-					ELSE NULL
-				END
-			WHERE id = $1 AND status = 'running'
-		`
-
-	_, err := s.db.Exec(ctx, query, jobId, errMsg)
+	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return fmt.Errorf("handle job failure: %w", err)
+		return fmt.Errorf("begin tx: %w", err)
 	}
-	return nil
+	defer tx.Rollback(ctx)
+
+	var retryCount, maxRetries int
+	var jobType, payload string
+
+	err = tx.QueryRow(ctx, `SELECT type, payload, retry_count, max_retries FROM jobs WHERE id = $1 FOR UPDATE`, jobId).
+		Scan(&jobType, &payload, &retryCount, &maxRetries)
+
+	if err != nil {
+		return fmt.Errorf("fetch job: %w", err)
+	}
+
+	newRetryCount := retryCount + 1
+
+	if newRetryCount >= maxRetries {
+		_, err = tx.Exec(ctx, `INSERT into dead_jobs (id, type, payload, last_err, retry_count) VALUES($1, $2, $3, $4, $5)`, 
+		jobId, jobType, payload, errMsg, newRetryCount)
+
+		if err != nil {
+			return fmt.Errorf("move to dlq: %w", err)
+		}
+
+		_, err = tx.Exec(ctx, `DELETE FROM jobs WHERE id = $1`, jobId)
+		if err != nil {
+			return fmt.Errorf("delete from jobs: %w", err)
+		}
+
+		logger.Info("Job moved to DLQ", "job_id", jobId)
+
+	} else {
+
+		backoff := math.Pow(2, float64(newRetryCount))
+
+		_, err = tx.Exec(ctx, `
+			UPDATE jobs
+			SET status = 'pending',
+				retry_count = $1,
+				last_err = $2,
+				next_run_at = NOW() + ($3 * INTERVAL '1 second'),
+				updated_at = NOW()
+			WHERE id = $4
+		`, newRetryCount, errMsg, backoff, jobId)
+
+		if err != nil {
+			return fmt.Errorf("update retry: %w", err)
+		}
+
+	}
+
+	return tx.Commit(ctx)
 
 }
 
