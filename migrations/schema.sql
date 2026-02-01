@@ -25,3 +25,13 @@ ADD COLUMN next_run_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW();
 DROP INDEX idx_jobs_status_created_at;
 
 CREATE INDEX idx_jobs_status_next_run_at ON jobs (status, next_run_at);
+
+
+CREATE TABLE dead_jobs (
+    id BIGINT PRIMARY KEY,
+    type TEXT NOT NULL,
+    payload JSONB NOT NULL,
+    last_err TEXT,
+    failed_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    retry_count INT NOT NULL
+);
