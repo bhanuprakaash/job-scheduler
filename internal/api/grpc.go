@@ -36,7 +36,7 @@ func (s *Server) SubmitJob(ctx context.Context, req *pb.SubmitJobRequest) (*pb.S
 		logger.Error("Invalid job type submitted", "type", req.Type)
 		return nil, status.Errorf(codes.InvalidArgument, "job type '%s' is not registered", req.Type)
 	}
-	
+
 	if req.Payload == "" {
 		req.Payload = "{}"
 	}
@@ -103,16 +103,21 @@ func (s *Server) ListJobs(ctx context.Context, req *pb.ListJobRequest) (*pb.List
 
 	var pbJobs []*pb.GetJobResponse
 	for _, j := range jobs.Jobs {
-		pbJobs = append(pbJobs, &pb.GetJobResponse{
+		jobResp := &pb.GetJobResponse{
 			JobId:        fmt.Sprintf("%d", j.ID),
 			Type:         j.Type,
 			Payload:      j.Payload,
 			Status:       string(j.Status),
 			CreatedAt:    j.CreatedAt.Format("2006-01-02T15:04:05Z"),
-			CompletedAt:  j.CompletedAt.Format("2006-01-02T15:04:05Z"),
 			ErrorMessage: j.ErrorMessage.String,
 			RetryCount:   strconv.Itoa(j.RetryCount),
-		})
+		}
+
+		if j.CompletedAt != nil {
+			jobResp.CompletedAt = j.CompletedAt.Format("2006-01-02T15:04:05Z")
+		}
+
+		pbJobs = append(pbJobs, jobResp)
 	}
 
 	var pagination *pb.PaginationMetaData
