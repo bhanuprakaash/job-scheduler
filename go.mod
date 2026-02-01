@@ -16,6 +16,7 @@ require (
 	github.com/rs/cors v1.11.1
 	github.com/spf13/cobra v1.10.2
 	golang.org/x/image v0.35.0
+	golang.org/x/time v0.14.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20260122232226-8e98ce8d340d
 	google.golang.org/grpc v1.78.0
 	google.golang.org/protobuf v1.36.11

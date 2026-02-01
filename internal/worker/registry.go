@@ -3,41 +3,60 @@ package worker
 import (
 	"fmt"
 	"sync"
+
+	"golang.org/x/time/rate"
 )
 
+type registryEntry struct {
+	handler Handler
+	limiter *rate.Limiter
+}
+
 type Registry struct {
-	mu       sync.RWMutex
-	handlers map[string]Handler
+	mu      sync.RWMutex
+	entries map[string]registryEntry
 }
 
 func NewRegistry() *Registry {
 	return &Registry{
-		handlers: make(map[string]Handler),
+		entries: make(map[string]registryEntry),
 	}
 }
 
-func (r *Registry) Register(jobType string, handler Handler) {
+func (r *Registry) Register(jobType string, handler Handler, eventsPerSecond int) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.handlers[jobType] = handler
+
+	var limiter *rate.Limiter
+	if eventsPerSecond > 0 {
+		limiter = rate.NewLimiter(rate.Limit(eventsPerSecond), eventsPerSecond)
+	} else {
+		limiter = rate.NewLimiter(rate.Inf, 0)
+	}
+
+	r.entries[jobType] = registryEntry{
+		handler: handler,
+		limiter: limiter,
+	}
 }
 
-func (r *Registry) Get(jobType string) (Handler, error) {
+func (r *Registry) Get(jobType string) (Handler, *rate.Limiter, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	handler, exists := r.handlers[jobType]
+	entry, exists := r.entries[jobType]
 	if !exists {
-		return nil, fmt.Errorf("no handler registered for job type: %s", jobType)
+		return nil, nil, fmt.Errorf("no handler registered for job type: %s", jobType)
 	}
 
-	return handler, nil
+	return entry.handler, entry.limiter, nil
 }
 
 func (r *Registry) Has(jobType string) bool {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	_, exists := r.handlers[jobType]
+	// _, exists := r.handlers[jobType]
+	_, exists := r.entries[jobType]
 	return exists
 }

@@ -104,7 +104,7 @@ func TestPool_LoadTest(t *testing.T) {
 		defer wg.Done()
 		time.Sleep(2 * time.Millisecond)
 		return nil
-	}))
+	}), 0)
 
 	pool := NewPool(memStore, registry, WorkerCount, PollTime)
 	ctx, cancel := context.WithCancel(context.Background())
@@ -153,7 +153,7 @@ func TestPool_GracefulShutdown(t *testing.T) {
 		case <-time.After(1 * time.Second):
 			return nil
 		}
-	}))
+	}), 0)
 
 	pool := NewPool(memStore, registry, 1, 10*time.Millisecond)
 	ctx, cancel := context.WithCancel(context.Background())

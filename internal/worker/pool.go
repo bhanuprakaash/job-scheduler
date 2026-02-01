@@ -124,7 +124,7 @@ func (p *Pool) ProcessNextJob(ctx context.Context, workerId int, job store.Job) 
 
 	startTime := time.Now()
 
-	handler, err := p.registry.Get(job.Type)
+	handler, limiter, err := p.registry.Get(job.Type)
 	if err != nil {
 		logger.Error("no handler found", "error", err)
 		updateFail := p.store.UpdateJobStatus(ctx, store.JobStatusFailed, job.ID)
@@ -132,6 +132,11 @@ func (p *Pool) ProcessNextJob(ctx context.Context, workerId int, job store.Job) 
 			logger.Error("CRITICAL: Failed to update job status", "error", updateFail)
 		}
 		metrics.JobsProcessed.WithLabelValues(job.Type, "failed").Inc()
+		return
+	}
+
+	if err := limiter.Wait(ctx); err != nil {
+		logger.Error("Rate limiter wait failed", "error", err)
 		return
 	}
 
