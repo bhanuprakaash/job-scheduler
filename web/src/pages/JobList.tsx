@@ -1,6 +1,5 @@
-import { useState } from 'react';
-import { useJobs } from '@/hooks/useJobs';
-import { useNavigate } from 'react-router-dom';
+import { useJobs, useDeadJobs } from '@/hooks/useJobs';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import {
     Table,
@@ -13,25 +12,41 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CreateJobModal } from '@/components/CreateJobModal';
-import { RefreshCcw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { RefreshCcw, ChevronLeft, ChevronRight, AlertCircle, List } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function JobList() {
-    const [page, setPage] = useState(1);
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const activeTab = location.pathname === '/jobs/dead' ? 'dead' : 'all';
+    const page = parseInt(searchParams.get('page') || '1', 10);
     const limit = 20;
     const offset = (page - 1) * limit;
-    const { data, isLoading, isError, refetch, isFetching } = useJobs(limit, offset);
-    const navigate = useNavigate();
+
+    const jobsQuery = useJobs(limit, offset);
+    const deadJobsQuery = useDeadJobs(limit, offset);
+
+    const { data, isLoading, isError, refetch, isFetching } =
+        activeTab === 'all' ? jobsQuery : deadJobsQuery;
 
     const handleNext = () => {
         if (data && data.meta.current_page < data.meta.total_pages) {
-            setPage((p) => p + 1);
+            setSearchParams({ page: (page + 1).toString() });
         }
     };
 
     const handlePrev = () => {
         if (page > 1) {
-            setPage((p) => p - 1);
+            setSearchParams({ page: (page - 1).toString() });
         }
+    };
+
+    const handleTabChange = (tab: 'all' | 'dead') => {
+        if (tab === activeTab) return;
+        navigate(tab === 'dead' ? '/jobs/dead' : '/jobs');
     };
 
     const getStatusBadge = (status: string) => {
@@ -45,7 +60,7 @@ export default function JobList() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight">Jobs</h2>
                     <p className="text-muted-foreground">Manage and monitor distributed jobs</p>
@@ -58,7 +73,44 @@ export default function JobList() {
                 </div>
             </div>
 
-            <div className="rounded-md border bg-card h-[calc(100vh-280px)] overflow-auto relative">
+            <div className="flex items-center space-x-1 p-1 bg-muted/50 rounded-lg w-fit">
+                <button
+                    onClick={() => handleTabChange('all')}
+                    className={`relative px-4 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === 'all' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                >
+                    {activeTab === 'all' && (
+                        <motion.div
+                            layoutId="activeTab"
+                            className="absolute inset-0 bg-background shadow-sm rounded-md"
+                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                        />
+                    )}
+                    <span className="relative z-10 flex items-center gap-2">
+                        <List className="w-4 h-4" />
+                        All Jobs
+                    </span>
+                </button>
+                <button
+                    onClick={() => handleTabChange('dead')}
+                    className={`relative px-4 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === 'dead' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                >
+                    {activeTab === 'dead' && (
+                        <motion.div
+                            layoutId="activeTab"
+                            className="absolute inset-0 bg-background shadow-sm rounded-md"
+                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                        />
+                    )}
+                    <span className="relative z-10 flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4" />
+                        Failure Jobs
+                    </span>
+                </button>
+            </div>
+
+            <div className="rounded-md border bg-card h-[calc(100vh-320px)] overflow-auto relative">
                 <Table>
                     <TableHeader className="sticky top-0 z-10 bg-card">
                         <TableRow>
@@ -93,9 +145,9 @@ export default function JobList() {
                                 <TableRow
                                     key={job.id}
                                     className="cursor-pointer hover:bg-muted/50"
-                                    onClick={() => navigate(`/jobs/${job.id}`)}
+                                    onClick={() => navigate(`/jobs/${job.id}`, { state: { job } })}
                                 >
-                                    <TableCell className="font-mono text-xs">{job.id.substring(0, 8)}...</TableCell>
+                                    <TableCell className="font-mono text-xs">{(job.id || '').substring(0, 8)}...</TableCell>
                                     <TableCell>
                                         <Badge variant="outline" className="font-mono text-xs font-normal">
                                             {job.type}
@@ -103,7 +155,7 @@ export default function JobList() {
                                     </TableCell>
                                     <TableCell>{getStatusBadge(job.status)}</TableCell>
                                     <TableCell className="text-muted-foreground text-xs">
-                                        {format(new Date(job.created_at), 'MMM d, HH:mm:ss')}
+                                        {job.created_at ? format(new Date(job.created_at), 'MMM d, HH:mm:ss') : 'N/A'}
                                     </TableCell>
                                     <TableCell className="text-right font-mono">{job.retry_count}</TableCell>
                                 </TableRow>
@@ -139,3 +191,4 @@ export default function JobList() {
         </div>
     );
 }
+

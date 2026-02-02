@@ -188,8 +188,8 @@ func (s *Store) HandleJobFailure(ctx context.Context, jobId int64, errMsg string
 	newRetryCount := retryCount + 1
 
 	if newRetryCount >= maxRetries {
-		_, err = tx.Exec(ctx, `INSERT into dead_jobs (id, type, payload, last_err, retry_count) VALUES($1, $2, $3, $4, $5)`, 
-		jobId, jobType, payload, errMsg, newRetryCount)
+		_, err = tx.Exec(ctx, `INSERT into dead_jobs (id, type, payload, last_err, retry_count) VALUES($1, $2, $3, $4, $5)`,
+			jobId, jobType, payload, errMsg, newRetryCount)
 
 		if err != nil {
 			return fmt.Errorf("move to dlq: %w", err)
@@ -336,6 +336,68 @@ func (s *Store) ListJobs(ctx context.Context, limit, offset int) (*PaginatedJobs
 	}, nil
 }
 
+func (s *Store) ListDeadJobs(ctx context.Context, limit, offset int) (*PaginatedJobs, error) {
+    var total int64
+    if err := s.db.QueryRow(ctx, "SELECT COUNT(*) FROM dead_jobs").Scan(&total); err != nil {
+        return nil, err
+    }
+
+    if total == 0 {
+        return &PaginatedJobs{
+            Jobs: []Job{},
+            Meta: PaginationMetadata{
+                CurrentPage:  1,
+                TotalPages:   0,
+                TotalRecords: 0,
+                Limit:        limit,
+            },
+        }, nil
+    }
+
+    query := `
+        SELECT id, type, payload, 'failed' as status, failed_at as created_at, last_err, retry_count
+        FROM dead_jobs
+        ORDER BY failed_at DESC
+        LIMIT $1 OFFSET $2
+    `
+    rows, err := s.db.Query(ctx, query, limit, offset)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    jobs := []Job{}
+
+    for rows.Next() {
+        var j Job
+        if err := rows.Scan(
+            &j.ID, 
+            &j.Type, 
+            &j.Payload, 
+            &j.Status, 
+            &j.CreatedAt, 
+            &j.ErrorMessage, 
+            &j.RetryCount,
+        ); err != nil {
+            return nil, err
+        }
+        jobs = append(jobs, j)
+    }
+
+    currentPage := (offset / limit) + 1
+    totalPages := int(math.Ceil(float64(total) / float64(limit)))
+
+    return &PaginatedJobs{
+        Jobs: jobs,
+        Meta: PaginationMetadata{
+            CurrentPage:  currentPage,
+            TotalPages:   totalPages,
+            TotalRecords: total,
+            Limit:        limit,
+        },
+    }, nil
+}
+
 func (s *Store) GetStats(ctx context.Context) (*JobStats, error) {
 	query := `
 		SELECT status, COUNT(*)
@@ -364,10 +426,16 @@ func (s *Store) GetStats(ctx context.Context) (*JobStats, error) {
 			stats.Running = count
 		case "completed":
 			stats.Completed = count
-		case "failed":
-			stats.Failed = count
 		}
 	}
+
+	queryDead := `SELECT COUNT(*) FROM dead_jobs`
+	var deadCount int64
+	if err := s.db.QueryRow(ctx, queryDead).Scan(&deadCount); err != nil {
+		return nil, err
+	}
+
+	stats.Failed = deadCount
 
 	return stats, nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/bhanuprakaash/job-scheduler/internal/logger"
 	"github.com/bhanuprakaash/job-scheduler/internal/store"
@@ -133,6 +134,43 @@ func (s *Server) ListJobs(ctx context.Context, req *pb.ListJobRequest) (*pb.List
 		Meta: pagination,
 	}, nil
 
+}
+
+func (s *Server) ListDeadJobs(ctx context.Context, req *pb.ListJobRequest) (*pb.ListJobResponse, error) {
+	limit := int(req.Limit)
+	if limit <= 0 {
+		limit = 10
+	}
+	offset := int(req.Offset)
+
+
+	paginatedJobs, err := s.store.ListDeadJobs(ctx, limit, offset)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to list dead jobs: %v", err)
+	}
+
+	var pbJobs []*pb.GetJobResponse
+	for _, j := range paginatedJobs.Jobs {
+		pbJobs = append(pbJobs, &pb.GetJobResponse{
+			JobId:        fmt.Sprintf("%d", j.ID),
+			Type:         j.Type,
+			Payload:      j.Payload,
+			Status:       "failed",
+			CreatedAt:    j.CreatedAt.Format(time.RFC3339),
+			ErrorMessage: j.ErrorMessage.String,
+			RetryCount:   strconv.Itoa(j.RetryCount),
+		})
+	}
+
+	return &pb.ListJobResponse{
+		Jobs: pbJobs,
+		Meta: &pb.PaginationMetaData{
+			CurrentPage:  int32(paginatedJobs.Meta.CurrentPage),
+			TotalPages:   int32(paginatedJobs.Meta.TotalPages),
+			TotalRecords: paginatedJobs.Meta.TotalRecords,
+			Limit:        int32(paginatedJobs.Meta.Limit),
+		},
+	}, nil
 }
 
 func (s *Server) GetJobStats(ctx context.Context, req *pb.GetJobStatsRequest) (*pb.GetJobStatusResponse, error) {

@@ -14,6 +14,7 @@ type Storer interface {
 	GetArchivedJobs(ctx context.Context, duration time.Duration, limit int) ([]Job, error)
 	BatchDeleteJobs(ctx context.Context, ids []int64) error
 	ListJobs(ctx context.Context, limit, offset int) (*PaginatedJobs, error)
+	ListDeadJobs(ctx context.Context, limit, offset int) (*PaginatedJobs, error)
 	GetStats(ctx context.Context) (*JobStats, error)
 	RepeatStuckJobs(ctx context.Context, interval time.Duration) (int64, error)
 	Close()

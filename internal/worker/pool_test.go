@@ -63,6 +63,9 @@ func (m *MemoryStore) BatchDeleteJobs(ctx context.Context, ids []int64) error { 
 func (m *MemoryStore) ListJobs(ctx context.Context, limit, offset int) (*store.PaginatedJobs, error) {
 	return nil, nil
 }
+func (m *MemoryStore) ListDeadJobs(ctx context.Context, limit, offset int) (*store.PaginatedJobs, error) {
+	return nil, nil
+}
 func (m *MemoryStore) GetStats(ctx context.Context) (*store.JobStats, error) { return nil, nil }
 func (m *MemoryStore) Close()                                                {}
 func (m *MemoryStore) RepeatStuckJobs(ctx context.Context, interval time.Duration) (int64, error) {

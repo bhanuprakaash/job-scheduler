@@ -20,7 +20,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <nav className="flex-1 p-4 space-y-2">
                     {navItems.map((item) => {
                         const Icon = item.icon;
-                        const isActive = location.pathname === item.href;
+                        const isActive = item.href === '/'
+                            ? location.pathname === '/'
+                            : location.pathname.startsWith(item.href);
                         return (
                             <Link
                                 key={item.href}
@@ -45,7 +47,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 {/* Header */}
                 <header className="h-16 border-b flex items-center justify-between px-6 bg-card/50 backdrop-blur-sm sticky top-0 z-10">
                     <h1 className="text-xl font-semibold">
-                        {navItems.find((item) => item.href === location.pathname)?.label || 'Overview'}
+                        {navItems.find((item) =>
+                            item.href === '/'
+                                ? location.pathname === '/'
+                                : location.pathname.startsWith(item.href)
+                        )?.label || 'Overview'}
                     </h1>
                 </header>
 

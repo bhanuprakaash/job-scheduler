@@ -19,10 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	JobScheduler_SubmitJob_FullMethodName   = "/scheduler.JobScheduler/SubmitJob"
-	JobScheduler_GetJob_FullMethodName      = "/scheduler.JobScheduler/GetJob"
-	JobScheduler_ListJobs_FullMethodName    = "/scheduler.JobScheduler/ListJobs"
-	JobScheduler_GetJobStats_FullMethodName = "/scheduler.JobScheduler/GetJobStats"
+	JobScheduler_SubmitJob_FullMethodName    = "/scheduler.JobScheduler/SubmitJob"
+	JobScheduler_GetJob_FullMethodName       = "/scheduler.JobScheduler/GetJob"
+	JobScheduler_ListJobs_FullMethodName     = "/scheduler.JobScheduler/ListJobs"
+	JobScheduler_GetJobStats_FullMethodName  = "/scheduler.JobScheduler/GetJobStats"
+	JobScheduler_ListDeadJobs_FullMethodName = "/scheduler.JobScheduler/ListDeadJobs"
 )
 
 // JobSchedulerClient is the client API for JobScheduler service.
@@ -48,6 +49,8 @@ type JobSchedulerClient interface {
 	ListJobs(ctx context.Context, in *ListJobRequest, opts ...grpc.CallOption) (*ListJobResponse, error)
 	// Dashboard Stats (Pulse)
 	GetJobStats(ctx context.Context, in *GetJobStatsRequest, opts ...grpc.CallOption) (*GetJobStatusResponse, error)
+	// For the Dead Jobs Table
+	ListDeadJobs(ctx context.Context, in *ListJobRequest, opts ...grpc.CallOption) (*ListJobResponse, error)
 }
 
 type jobSchedulerClient struct {
@@ -98,6 +101,16 @@ func (c *jobSchedulerClient) GetJobStats(ctx context.Context, in *GetJobStatsReq
 	return out, nil
 }
 
+func (c *jobSchedulerClient) ListDeadJobs(ctx context.Context, in *ListJobRequest, opts ...grpc.CallOption) (*ListJobResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListJobResponse)
+	err := c.cc.Invoke(ctx, JobScheduler_ListDeadJobs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JobSchedulerServer is the server API for JobScheduler service.
 // All implementations must embed UnimplementedJobSchedulerServer
 // for forward compatibility.
@@ -121,6 +134,8 @@ type JobSchedulerServer interface {
 	ListJobs(context.Context, *ListJobRequest) (*ListJobResponse, error)
 	// Dashboard Stats (Pulse)
 	GetJobStats(context.Context, *GetJobStatsRequest) (*GetJobStatusResponse, error)
+	// For the Dead Jobs Table
+	ListDeadJobs(context.Context, *ListJobRequest) (*ListJobResponse, error)
 	mustEmbedUnimplementedJobSchedulerServer()
 }
 
@@ -142,6 +157,9 @@ func (UnimplementedJobSchedulerServer) ListJobs(context.Context, *ListJobRequest
 }
 func (UnimplementedJobSchedulerServer) GetJobStats(context.Context, *GetJobStatsRequest) (*GetJobStatusResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetJobStats not implemented")
+}
+func (UnimplementedJobSchedulerServer) ListDeadJobs(context.Context, *ListJobRequest) (*ListJobResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListDeadJobs not implemented")
 }
 func (UnimplementedJobSchedulerServer) mustEmbedUnimplementedJobSchedulerServer() {}
 func (UnimplementedJobSchedulerServer) testEmbeddedByValue()                      {}
@@ -236,6 +254,24 @@ func _JobScheduler_GetJobStats_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JobScheduler_ListDeadJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListJobRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JobSchedulerServer).ListDeadJobs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JobScheduler_ListDeadJobs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JobSchedulerServer).ListDeadJobs(ctx, req.(*ListJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // JobScheduler_ServiceDesc is the grpc.ServiceDesc for JobScheduler service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -258,6 +294,10 @@ var JobScheduler_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetJobStats",
 			Handler:    _JobScheduler_GetJobStats_Handler,
+		},
+		{
+			MethodName: "ListDeadJobs",
+			Handler:    _JobScheduler_ListDeadJobs_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -598,13 +598,14 @@ const file_proto_scheduler_proto_rawDesc = "" +
 	"\frunning_jobs\x18\x03 \x01(\x03R\vrunningJobs\x12\x1f\n" +
 	"\vfailed_jobs\x18\x04 \x01(\x03R\n" +
 	"failedJobs\x12%\n" +
-	"\x0ecompleted_jobs\x18\x05 \x01(\x03R\rcompletedJobs2\xfc\x02\n" +
+	"\x0ecompleted_jobs\x18\x05 \x01(\x03R\rcompletedJobs2\xda\x03\n" +
 	"\fJobScheduler\x12[\n" +
 	"\tSubmitJob\x12\x1b.scheduler.SubmitJobRequest\x1a\x1c.scheduler.SubmitJobResponse\"\x13\x82\xd3\xe4\x93\x02\r:\x01*\"\b/v1/jobs\x12X\n" +
 	"\x06GetJob\x12\x18.scheduler.GetJobRequest\x1a\x19.scheduler.GetJobResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/v1/jobs/{job_id}\x12S\n" +
 	"\bListJobs\x12\x19.scheduler.ListJobRequest\x1a\x1a.scheduler.ListJobResponse\"\x10\x82\xd3\xe4\x93\x02\n" +
 	"\x12\b/v1/jobs\x12`\n" +
-	"\vGetJobStats\x12\x1d.scheduler.GetJobStatsRequest\x1a\x1f.scheduler.GetJobStatusResponse\"\x11\x82\xd3\xe4\x93\x02\v\x12\t/v1/statsB.Z,github.com/bhanuprakaash/job-scheduler/protob\x06proto3"
+	"\vGetJobStats\x12\x1d.scheduler.GetJobStatsRequest\x1a\x1f.scheduler.GetJobStatusResponse\"\x11\x82\xd3\xe4\x93\x02\v\x12\t/v1/stats\x12\\\n" +
+	"\fListDeadJobs\x12\x19.scheduler.ListJobRequest\x1a\x1a.scheduler.ListJobResponse\"\x15\x82\xd3\xe4\x93\x02\x0f\x12\r/v1/jobs/deadB.Z,github.com/bhanuprakaash/job-scheduler/protob\x06proto3"
 
 var (
 	file_proto_scheduler_proto_rawDescOnce sync.Once
@@ -637,12 +638,14 @@ var file_proto_scheduler_proto_depIdxs = []int32{
 	2, // 3: scheduler.JobScheduler.GetJob:input_type -> scheduler.GetJobRequest
 	4, // 4: scheduler.JobScheduler.ListJobs:input_type -> scheduler.ListJobRequest
 	7, // 5: scheduler.JobScheduler.GetJobStats:input_type -> scheduler.GetJobStatsRequest
-	1, // 6: scheduler.JobScheduler.SubmitJob:output_type -> scheduler.SubmitJobResponse
-	3, // 7: scheduler.JobScheduler.GetJob:output_type -> scheduler.GetJobResponse
-	6, // 8: scheduler.JobScheduler.ListJobs:output_type -> scheduler.ListJobResponse
-	8, // 9: scheduler.JobScheduler.GetJobStats:output_type -> scheduler.GetJobStatusResponse
-	6, // [6:10] is the sub-list for method output_type
-	2, // [2:6] is the sub-list for method input_type
+	4, // 6: scheduler.JobScheduler.ListDeadJobs:input_type -> scheduler.ListJobRequest
+	1, // 7: scheduler.JobScheduler.SubmitJob:output_type -> scheduler.SubmitJobResponse
+	3, // 8: scheduler.JobScheduler.GetJob:output_type -> scheduler.GetJobResponse
+	6, // 9: scheduler.JobScheduler.ListJobs:output_type -> scheduler.ListJobResponse
+	8, // 10: scheduler.JobScheduler.GetJobStats:output_type -> scheduler.GetJobStatusResponse
+	6, // 11: scheduler.JobScheduler.ListDeadJobs:output_type -> scheduler.ListJobResponse
+	7, // [7:12] is the sub-list for method output_type
+	2, // [2:7] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
 	2, // [2:2] is the sub-list for extension extendee
 	0, // [0:2] is the sub-list for field type_name

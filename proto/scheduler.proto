@@ -44,6 +44,13 @@ service JobScheduler {
       get: "/v1/stats"
     };
   }
+
+  // For the Dead Jobs Table
+  rpc ListDeadJobs(ListJobRequest) returns (ListJobResponse) {
+    option (google.api.http) = {
+      get: "/v1/jobs/dead"
+    };
+  }
 }
 
 message SubmitJobRequest {

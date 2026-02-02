@@ -1,5 +1,6 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useJob } from '@/hooks/useJobs';
+import type { Job } from '@/hooks/useJobs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,11 +10,19 @@ import { format } from 'date-fns';
 export default function JobDetails() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const { data: job, isLoading, error } = useJob(id!);
+    const location = useLocation();
+
+    // Get job from state if passed from JobList
+    const jobFromState = location.state?.job as Job | undefined;
+
+    // Only fetch if we don't have the job in state
+    const { data: jobFromApi, isLoading, error } = useJob(jobFromState ? '' : (id || ''));
+
+    const job = jobFromState || jobFromApi;
 
     if (!id) return null;
-    if (isLoading) return <div className="p-8">Loading job details...</div>;
-    if (error) return <div className="p-8 text-destructive">Error loading job.</div>;
+    if (isLoading && !job) return <div className="p-8">Loading job details...</div>;
+    if (error && !job) return <div className="p-8 text-destructive">Error loading job.</div>;
     if (!job) return <div className="p-8">Job not found.</div>;
 
     const getStatusBadge = (status: string) => {

@@ -35,41 +35,55 @@ export interface CreateJobPayload {
 
 // Hooks
 
-interface RawJobStats {
-    totalJobs: string;
-    pendingJobs: string;
-    runningJobs: string;
-    failedJobs: string;
-    completedJobs: string;
-}
-
-interface RawJob {
-    jobId: string;
+interface RawJobData {
+    jobId?: string;
+    job_id?: string;
     type: string;
     status: 'pending' | 'running' | 'completed' | 'failed';
-    createdAt: string;
-    retryCount: string;
+    createdAt?: string;
+    created_at?: string;
+    retryCount?: string;
+    retry_count?: string;
     payload?: string;
     errorMessage?: string;
+    error_message?: string;
 }
 
-interface RawJobsResponse {
-    jobs: RawJob[];
-    meta: {
-        currentPage: number;
-        totalPages: number;
-        totalRecords: string;
-    };
+interface RawMetaData {
+    currentPage?: number;
+    current_page?: number;
+    totalPages?: number;
+    total_pages?: number;
+    totalRecords?: string | number;
+    total_records?: string | number;
 }
 
-const mapJob = (raw: RawJob): Job => ({
-    id: raw.jobId,
+interface RawResponse {
+    jobs: RawJobData[];
+    meta: RawMetaData;
+}
+
+interface RawJobStats {
+    totalJobs?: string;
+    total_jobs?: string;
+    pendingJobs?: string;
+    pending_jobs?: string;
+    runningJobs?: string;
+    running_jobs?: string;
+    failedJobs?: string;
+    failed_jobs?: string;
+    completedJobs?: string;
+    completed_jobs?: string;
+}
+
+const mapJob = (raw: RawJobData): Job => ({
+    id: raw.jobId || raw.job_id || '',
     type: raw.type,
     status: raw.status,
-    created_at: raw.createdAt,
-    retry_count: parseInt(raw.retryCount, 10),
+    created_at: raw.createdAt || raw.created_at || '',
+    retry_count: parseInt((raw.retryCount || raw.retry_count || '0').toString(), 10),
     payload: raw.payload,
-    error_message: raw.errorMessage,
+    error_message: raw.errorMessage || raw.error_message,
 });
 
 export const useJobStats = () => {
@@ -78,11 +92,11 @@ export const useJobStats = () => {
         queryFn: async () => {
             const { data } = await api.get<RawJobStats>('/stats');
             return {
-                total_jobs: parseInt(data.totalJobs, 10),
-                pending_jobs: parseInt(data.pendingJobs, 10),
-                running_jobs: parseInt(data.runningJobs, 10),
-                failed_jobs: parseInt(data.failedJobs, 10),
-                completed_jobs: parseInt(data.completedJobs, 10),
+                total_jobs: parseInt((data.totalJobs ?? data.total_jobs ?? '0').toString(), 10),
+                pending_jobs: parseInt((data.pendingJobs ?? data.pending_jobs ?? '0').toString(), 10),
+                running_jobs: parseInt((data.runningJobs ?? data.running_jobs ?? '0').toString(), 10),
+                failed_jobs: parseInt((data.failedJobs ?? data.failed_jobs ?? '0').toString(), 10),
+                completed_jobs: parseInt((data.completedJobs ?? data.completed_jobs ?? '0').toString(), 10),
             };
         },
         refetchInterval: 2000,
@@ -93,15 +107,35 @@ export const useJobs = (limit: number = 20, offset: number = 0) => {
     return useQuery({
         queryKey: ['jobs', limit, offset],
         queryFn: async () => {
-            const { data } = await api.get<RawJobsResponse>(`/jobs`, {
+            const { data } = await api.get<RawResponse>(`/jobs`, {
                 params: { limit, offset },
             });
             return {
-                jobs: data.jobs.map(mapJob),
+                jobs: (data.jobs || []).map(mapJob),
                 meta: {
-                    current_page: data.meta.currentPage,
-                    total_pages: data.meta.totalPages,
-                    total_records: parseInt(data.meta.totalRecords, 10),
+                    current_page: data.meta.currentPage ?? data.meta.current_page ?? 1,
+                    total_pages: data.meta.totalPages ?? data.meta.total_pages ?? 1,
+                    total_records: parseInt((data.meta.totalRecords ?? data.meta.total_records ?? '0').toString(), 10),
+                },
+            };
+        },
+        refetchInterval: 2000,
+    });
+};
+
+export const useDeadJobs = (limit: number = 20, offset: number = 0) => {
+    return useQuery({
+        queryKey: ['deadJobs', limit, offset],
+        queryFn: async () => {
+            const { data } = await api.get<RawResponse>(`/jobs/dead`, {
+                params: { limit, offset },
+            });
+            return {
+                jobs: (data.jobs || []).map(mapJob),
+                meta: {
+                    current_page: data.meta.currentPage ?? data.meta.current_page ?? 1,
+                    total_pages: data.meta.totalPages ?? data.meta.total_pages ?? 1,
+                    total_records: parseInt((data.meta.totalRecords ?? data.meta.total_records ?? '0').toString(), 10),
                 },
             };
         },
@@ -113,7 +147,7 @@ export const useJob = (id: string) => {
     return useQuery({
         queryKey: ['job', id],
         queryFn: async () => {
-            const { data } = await api.get<RawJob>(`/jobs/${id}`);
+            const { data } = await api.get<RawJobData>(`/jobs/${id}`);
             return mapJob(data);
         },
         enabled: !!id,
