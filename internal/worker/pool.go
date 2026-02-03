@@ -159,7 +159,7 @@ func (p *Pool) ProcessNextJob(ctx context.Context, workerId int, job store.Job) 
 		return
 	}
 
-	metrics.JobsProcessed.WithLabelValues(job.Type, "success").Inc()
+	metrics.JobsProcessed.WithLabelValues(job.Type, "completed").Inc()
 
 	logger.Info("Worker completed the job", "worker", workerId, "job_id", job.ID)
 
