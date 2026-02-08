@@ -3,17 +3,18 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    restart: always
     environment:
-      APP_ENV: production
-      PG_DB_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable
+      APP_ENV: development
+      PG_DB_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
       MINIO_ENDPOINT: minio:9000
+
+      # Pass through other variables
       GRPC_PORT: ${GRPC_PORT}
       GRPC_HOST: 0.0.0.0
       WORKERS_COUNT: ${WORKERS_COUNT}
       POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS}
       HTTP_PORT: ${HTTP_PORT}
-      METRICS_PORT: ${METRICS_PORT}
+      METRICS_PORT: 9090
       RESEND_EMAIL_API_KEY: ${RESEND_EMAIL_API_KEY}
       RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL}
       MINIO_ID: ${MINIO_ID}
@@ -21,17 +22,8 @@ services:
       MINIO_BUCKET: ${MINIO_BUCKET}
       MINIO_USE_SSL: ${MINIO_USE_SSL}
     ports:
-      - "${HTTP_PORT}:${HTTP_PORT}"
-      - "${GRPC_PORT}:${GRPC_PORT}"
-
-  postgres:
-    restart: always
-  
-  minio:
-    restart: always
-    
-  prometheus:
-    restart: always
-    
-  grafana:
-    restart: always
+      - "${HTTP_PORT}:${HTTP_PORT}"   # 8080:8080
+      - "${GRPC_PORT}:${GRPC_PORT}"   # 50052:50052
+      - "9091:9090"        # 9091:9090 (Metrics)
+    volumes:
+      - .:/app

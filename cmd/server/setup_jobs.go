@@ -23,7 +23,7 @@ func setupJobRegistry(cfg *config.Config, db store.Storer) (*worker.Registry, er
 	jobRegistry.Register("notification:email", email.NewEmailJob(resendService), 5)
 	jobRegistry.Register("media:resize_image", resize.NewImageResizeJob(minioBlob), 2)
 	jobRegistry.Register("maintenance:archive", maintenance.NewArchiveJob(db, minioBlob), 0)
-	jobRegistry.Register("finance:invoice", invoice.NewInvoiceJob(minioBlob), 1)
+	jobRegistry.Register("finance:invoice", invoice.NewInvoiceJob(minioBlob), 10)
 
 	return jobRegistry, nil
 

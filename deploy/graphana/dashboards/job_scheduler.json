@@ -1,0 +1,86 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "job_scheduler_dynamic",
+    "title": "Job Scheduler (Dynamic Source)",
+    "tags": ["scheduler", "go"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "5s",
+
+    "templating": {
+      "list": [
+        {
+          "hide": 0,
+          "includeAll": false,
+          "label": "Data Source",
+          "multi": false,
+          "name": "DS_PROMETHEUS",
+          "options": [],
+          "query": "prometheus",
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "type": "datasource"
+        }
+      ]
+    },
+
+    "panels": [
+      {
+        "id": 1,
+        "title": "Active Workers",
+        "type": "stat",
+        "gridPos": { "h": 8, "w": 4, "x": 0, "y": 0 },
+        "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+        "targets": [
+          { "expr": "job_scheduler_active_workers", "legendFormat": "Workers" }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Jobs Per Second (Throughput)",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 10, "x": 4, "y": 0 },
+        "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+        "targets": [
+          {
+            "expr": "rate(job_scheduler_jobs_processed_total[1m])",
+            "legendFormat": "{{job_type}}"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Latency (P99)",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 10, "x": 14, "y": 0 },
+        "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.99, sum(rate(job_scheduler_job_duration_seconds_bucket[5m])) by (le, job_type))",
+            "legendFormat": "{{job_type}}"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Error Rate",
+        "type": "timeseries",
+        "gridPos": { "h": 6, "w": 24, "x": 0, "y": 8 },
+        "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+        "targets": [
+          {
+            "expr": "rate(job_scheduler_jobs_processed_total{status=\"failed\"}[5m])",
+            "legendFormat": "{{job_type}} Errors"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": { "color": { "mode": "fixed", "fixedColor": "red" } }
+        }
+      }
+    ]
+  },
+  "overwrite": true
+}
