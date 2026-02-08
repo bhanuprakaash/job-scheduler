@@ -27,6 +27,19 @@ import { Button } from "@/components/ui/button";
 export default function Dashboard() {
   const { data: stats, isLoading, error } = useJobStats();
 
+  const handleViewMetrics = () => {
+    const grafanaUrl = import.meta.env.VITE_GRAFANA_URL;
+
+    if (!grafanaUrl) {
+      alert(
+        "Grafana URL is not configured. Please set VITE_GRAFANA_URL in your .env file.",
+      );
+      return;
+    }
+
+    window.open(grafanaUrl, "_blank");
+  };
+
   if (isLoading)
     return (
       <div className="p-8 flex justify-center text-muted-foreground">
@@ -50,15 +63,7 @@ export default function Dashboard() {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center space-x-2 ml-auto">
-          <Button
-            variant="outline"
-            onClick={() =>
-              window.open(
-                import.meta.env.VITE_GRAFANA_URL || "http://localhost:3000",
-                "_blank",
-              )
-            }
-          >
+          <Button variant="outline" onClick={handleViewMetrics}>
             <Activity className="mr-2 h-4 w-4" />
             View Live Metrics (Grafana)
           </Button>

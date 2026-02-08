@@ -9,6 +9,7 @@ import (
 )
 
 type Config struct {
+	APP_ENV               string
 	PG_DB_URL             string
 	GRPC_PORT             string
 	GRPC_HOST             string
@@ -33,13 +34,9 @@ type Config struct {
 func Load() (*Config, error) {
 	_ = godotenv.Load()
 
-	dbUrl := os.Getenv("PG_DB_URL")
-	if dbUrl == "" {
-		return nil, fmt.Errorf("DB_URL is required")
-	}
-
-	return &Config{
-		PG_DB_URL:             dbUrl,
+	cfg := &Config{
+		APP_ENV:               getEnv("APP_ENV", "development"),
+		PG_DB_URL:             getEnv("PG_DB_URL", ""),
 		GRPC_PORT:             getEnv("GRPC_PORT", "50052"),
 		GRPC_HOST:             getEnv("GRPC_HOST", "localhost"),
 		POLL_INTERVAL_SECONDS: getEnvAsInt("POLL_INTERVAL_SECONDS", 2),
@@ -55,7 +52,22 @@ func Load() (*Config, error) {
 		MINIO_ENDPOINT: getEnv("MINIO_ENDPOINT", "localhost:9000"),
 		MINIO_BUCKET:   getEnv("MINIO_BUCKET", "job-resize-images"),
 		MINIO_USE_SSL:  getEnvAsBool("MINIO_USE_SSL", false),
-	}, nil
+	}
+
+	if cfg.PG_DB_URL == "" {
+		return nil, fmt.Errorf("PG_DB_URL is required")
+	}
+
+	if cfg.APP_ENV == "production" {
+		if cfg.MINIO_ID == "minioadmin" || cfg.MINIO_SECRET == "minioadmin" {
+			return nil, fmt.Errorf("CRITICAL: Cannot use default MinIO credentials in production. Set MINIO_ID and MINIO_SECRET")
+		}
+		if cfg.RESEND_EMAIL_API_KEY == "" {
+			return nil, fmt.Errorf("CRITICAL: RESEND_EMAIL_API_KEY is required in production")
+		}
+	}
+
+	return cfg, nil
 }
 
 func getEnvAsInt(key string, fallback int) int {
